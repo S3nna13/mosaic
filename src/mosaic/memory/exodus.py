@@ -344,7 +344,7 @@ class ExodusMemoryStore:
         if priority is None:
             priority = 0.5
         entry = MemoryEntry(
-            id=str(token_id),
+            id=token_id,
             tier=tier,
             tokens=[],
             text="",
