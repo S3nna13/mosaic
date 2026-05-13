@@ -163,6 +163,10 @@ class SafeToolRunner:
                     f"tool '{first_token}' disallowed — not in allowed_tools set"
                 )
 
+        # If tool is explicitly allowed, bypass dangerous pattern checks
+        if self.allowed_tools and first_token in self.allowed_tools:
+            return cmd_str
+
         # Safe-mode dangerous pattern checks
         if self.safe_mode:
             dangerous = [
