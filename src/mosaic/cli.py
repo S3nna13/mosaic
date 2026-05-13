@@ -210,7 +210,7 @@ def audit_cmd(lines):
 def reset_cmd():
     """Clear current session memory (Exodus scratch + episode)."""
     # This requires decoder; make a temporary one just to clear?  Better to persist a global.
-    console.print("[yellow]Not implemented in standalone CLI – use /reset API endpoint or restart process.[/yellow]")
+    console.print("[yellow]Not implemented in standalone CLI - use /reset API endpoint or restart process.[/yellow]")
 
 
 if __name__ == "__main__":
