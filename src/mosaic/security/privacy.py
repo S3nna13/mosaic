@@ -116,7 +116,7 @@ class PrivacyFilter:
             ),
             # ── API keys & tokens ────────────────────────────────────────────
             (
-                r"\b(sk|sk-|sk_prod|sk_test)-[A-Za-z0-9]{48}",
+                r"\b(?:sk|sk-|sk_prod|sk_test)-[A-Za-z0-9.]+\b",
                 "API_KEY",
                 PrivacyAction.BLOCK,
                 "OpenAI secret key",
