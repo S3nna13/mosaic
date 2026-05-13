@@ -166,53 +166,47 @@ class PrivacyFilter:
 
     def scan(
         self, text: str, *, action_override: PrivacyAction | None = None
-    ) -> tuple[str, list[dict[str, str]]]:
-        """Scan text; apply strategy for each match.
+    ) -> PrivacyScanResult:
+        """Scan text; detect PII/secrets and apply the configured action.
 
-        Returns: (sanitised_text, findings_list)
+        Returns a PrivacyScanResult with hits, redacted_text, and the applied action.
         """
-        findings: list[dict[str, str]] = []
-        sanitised = text
-        _offset = 0  # track replacements so indices stay correct
+        # Collect all matches across all rules
+        raw_matches: list[tuple[int, int, str, PrivacyAction]] = []
+        for rule in self._compiled_rules:
+            for m in rule.pattern.finditer(text):
+                raw_matches.append((m.start(), m.end(), rule.type_name, rule.action))
 
-        # Process in order of appearance across all rules
-        matches: list[tuple[int, int, str, str]] = []
-        return any(
-            rule.action == PrivacyAction.BLOCK and rule.pattern.search(text)
-            for rule in self._compiled_rules
-        )
-        # Sort by start position, deduplicate overlapping by preferring earlier rule
-        matches.sort(key=lambda x: x[0])
-        cleaned: list[tuple[int, int, str]] = []
+        # Sort by start position
+        raw_matches.sort(key=lambda x: x[0])
+
+        # Deduplicate overlapping matches (prefer earlier match)
+        cleaned: list[tuple[int, int, str, PrivacyAction]] = []
         last_end = 0
-        for start, end, t, act in matches:
+        for start, end, t, act in raw_matches:
             if start < last_end:
-                continue  # skip overlap
+                continue
             last_end = end
             cleaned.append((start, end, t, act))
 
-        # Apply replacements right-to-left to preserve indices
-        for start, end, t, act in reversed(cleaned):
-            act_to_use = action_override or act
-            finding = {
-                "type": t,
-                "action": act_to_use.value,
-                "span": [start, end],
-                "sample": text[start : start + 10] + ("…" if end - start > 10 else ""),
-            }
-            findings.append(finding)
+        # Determine effective action for redaction
+        effective_action = action_override or self.default_action
 
-            if act_to_use == PrivacyAction.REDACT:
-                sanitised = sanitised[:start] + f"[REDACTED:{t}]" + sanitised[end:]
-            elif act_to_use == PrivacyAction.BLOCK:
-                # Hard block indicated by caller inspecting findings
-                pass
-            elif act_to_use == PrivacyAction.LOG:
-                pass  # no change
-            elif act_to_use == PrivacyAction.PASSTHROUGH:
-                pass
+        # Apply redaction if needed
+        redacted = text
+        if effective_action == PrivacyAction.REDACT:
+            for start, end, t, _ in reversed(cleaned):
+                redacted = redacted[:start] + f"[REDACTED:{t}]" + redacted[end:]
 
-        return sanitised, findings
+        # Build hit objects
+        hits: list[PrivacyHit] = []
+        for start, end, t, _ in cleaned:
+            sample = text[start:start+10]
+            if end - start > 10:
+                sample += "…"
+            hits.append(PrivacyHit(entity_type=t, span=(start, end), sample=sample))
+
+        return PrivacyScanResult(hits=hits, redacted_text=redacted, action=effective_action)
 
     def contains_secret_blockers(self, text: str) -> bool:
         """Quick pre-check: does text contain any BLOCK-action secret?"""
