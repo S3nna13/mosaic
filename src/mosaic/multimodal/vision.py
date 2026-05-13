@@ -12,8 +12,8 @@ import numpy as np
 from PIL import Image
 
 try:
-    import torch
-    import torchvision.transforms as T
+    import torch  # noqa: F401
+    import torchvision.transforms as t  # noqa: F401
     HAVE_TORCH = True
 except ImportError:
     HAVE_TORCH = False
