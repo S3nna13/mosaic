@@ -396,15 +396,15 @@ class ExodusMemoryStore:
     @property
     def _scratch(self):
         """Set of MemoryEntry objects in SCRATCH tier."""
-        return set(self.scratch._buffer.values())
+        return list(self.scratch._buffer.values())
 
     @property
     def _episode(self):
-        return set(self.episode._buffer.values())
+        return list(self.episode._buffer.values())
 
     @property
     def _archive(self):
-        return set(self.archive._buffer.values())
+        return list(self.archive._buffer.values())
 
     @property
     def _scratch_queue(self):
