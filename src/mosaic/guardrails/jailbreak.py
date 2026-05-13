@@ -11,7 +11,7 @@ class JailbreakDetector(Guardrail):
     name = "jailbreak_detection"
     is_input = True  # only runs on user prompts
 
-    JAILBREAK_PATTERNS = [
+    JAILBREAK_PATTERNS: ClassVar = None  # noqa: RUF012
         "ignore previous instructions",
         "ignore all instructions",
         "you are now",

@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from .engine import Guardrail, GuardrailResult
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mosaic import MosaicForCausalLM
 PRINCIPLES = [
     (
         "Helpful and Harmless",
