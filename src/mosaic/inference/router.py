@@ -33,21 +33,27 @@ class InferenceMode(str, Enum):  # noqa: UP042
 class RouterConfig:
     """Configuration for RedSea Router."""
 
+    d_model: int = 64
     mode: InferenceMode = InferenceMode.FAST
-    use_heuristic_fallback: bool = True  # if no MLP weights, use keyword rules
-    # Feature thresholds for heuristic mode
-    math_threshold: float = 0.15  # token overlap with math operators
-    code_threshold: float = 0.10  # code symbol density
-    tool_threshold: float = 0.20  # mentions of "search", "lookup", etc.
-    ambiguity_threshold: float = 0.25  # high entropy in token distribution
+    use_heuristic_fallback: bool = True
+    # Heuristic feature thresholds
+    math_threshold: float = 0.15
+    code_threshold: float = 0.10
+    tool_threshold: float = 0.20
+    ambiguity_threshold: float = 0.25
+    # Decision thresholds (used by heuristic or to bias MLP)
+    fast_threshold: float = 0.8
+    deliberate_threshold: float = 0.75
+    search_threshold: float = 0.6
+    memory_threshold: float = 0.5
 
 
 class RedSeaRouter(nn.Module):
     """MLP-based mode classifier + heuristic fallback."""
 
-    def __init__(self, dim: int, hidden: int = 64, n_modes: int = 5):
+    def __init__(self, cfg: RouterConfig, hidden: int = 64, n_modes: int = 5):
         super().__init__()
-        self.dim = dim
+        self.dim = cfg.d_model
         self.n_modes = n_modes
         self.classifier = nn.Sequential(
             nn.Linear(dim, hidden),
@@ -55,12 +61,18 @@ class RedSeaRouter(nn.Module):
             nn.Linear(hidden, n_modes),
         )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """x: [B, T, dim] mean-pooled over T.
-        Returns: logits [B, n_modes]"""
+    def forward(self, x: torch.Tensor) -> list[str]:
+        """Run inference and return mode strings per batch item."""
         if x.dim() == 3:
             x = x.mean(dim=1)  # [B, dim]
-        return self.classifier(x)
+        return self._classify(x)
+
+    def _classify(self, x: torch.Tensor) -> list[str]:
+        """Classify pooled embeddings into mode strings."""
+        logits = self.classifier(x)  # [B, n_modes]
+        preds = torch.argmax(logits, dim=-1)
+        mode_strings = ["fast", "deliberate", "search", "agent", "memory"]
+        return [mode_strings[i.item()] for i in preds]
 
     @torch.no_grad()
     def predict_mode(self, x: torch.Tensor, cfg: RouterConfig) -> InferenceMode:
