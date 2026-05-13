@@ -211,8 +211,8 @@ class GQAAttention(nn.Module):
             v = torch.cat([v, vr], dim=1)
 
         # ── Extend attention mask for any additional key tokens ───────────────
-        K_total = k.size(1)
-        extra_len = K_total - T
+        k_total = k.size(1)
+        extra_len = k_total - T
         if extra_len > 0:
             extra_mask = torch.zeros(T, extra_len, device=x.device, dtype=torch.bool)
             attn_mask = torch.cat([extra_mask, attn_mask], dim=1)  # [T, K_total]
