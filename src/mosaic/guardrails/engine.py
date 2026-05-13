@@ -77,7 +77,7 @@ class GuardrailPipeline:
         from .injection import PromptInjectionDetector
         from .jailbreak import JailbreakDetector
         from .pii import PIIDetector
-        from .secrets import SecretsScanner
+        from .pii import SecretsScanner
         from .toxicity import ToxicityGuardrail
 
         return GuardrailPipeline(

@@ -13,7 +13,7 @@ from .output import OutputValidator, StructuredOutputValidator
 from .pii import PIIDetector
 from .rag import RAGPoisoningDetector
 from .rate_limit import DoSProtectionGuard
-from .secrets import SecretsScanner
+from .pii import SecretsScanner
 from .toxicity import ToxicityFilter, ToxicityGuardrail
 
 # Convenience: expose the full set
