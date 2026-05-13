@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import torch
+
 from mosaic.model.transformer import MosaicConfig, MosaicTransformer
 from mosaic.model.verifier import VerifierHead
 
