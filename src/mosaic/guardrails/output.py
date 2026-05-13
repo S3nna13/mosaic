@@ -12,14 +12,14 @@ class OutputValidator(Guardrail):
     name = "output_safety"
     is_output = True
 
-    SAFE_PATTERNS = [
+    SAFE_PATTERNS = (
         (r"I cannot", 1.0),
         (r"I'm unable", 1.0)
-    ]
+    )
 
     async def check(self, text: str, context: str | None = None) -> GuardrailResult:
         # Basic keyword-based output filtering
-        for pattern, penalty in self.SAFE_PATTERNS:
+        for pattern, _penalty in self.SAFE_PATTERNS:
             if re.search(pattern, text, re.IGNORECASE):
                 return GuardrailResult(
                     name=self.name,
