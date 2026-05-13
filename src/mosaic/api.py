@@ -16,9 +16,6 @@ from mosaic.core.config import load_config
 from mosaic.inference.staff_decoder import DecodeRequest, StaffDecoder
 from mosaic.tools.registry import registry as tool_registry
 
-from pathlib import Path
-from fastapi.staticfiles import StaticFiles
-
 logger = structlog.get_logger()
 
 app = FastAPI(
@@ -143,7 +140,7 @@ async def chat_endpoint(req: ChatRequest):
         )
     except PermissionError as e:
         _metrics["guardrail_blocks"] += 1
-        raise HTTPException(403, str(e)) from None
+        raise HTTPException(403, str(e)) from None from None
     except Exception as e:
         _metrics["errors_total"] += 1
         logger.error("decode_error", error=str(e))
@@ -195,6 +192,8 @@ async def status():
 @app.get("/metrics")
 async def metrics_endpoint():
     """Prometheus-style metrics exposition."""
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
     return {
         "mosaic_requests_total": _metrics["requests_total"],
         "mosaic_guardrail_blocks_total": _metrics["guardrail_blocks"],
@@ -249,6 +248,8 @@ async def startup_event():
         ]
     )
     logger.info("mosaic_api_startup", version="0.3.0")
+
+
 
 
 
