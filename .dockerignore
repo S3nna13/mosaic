@@ -13,11 +13,8 @@ build
 .venv
 venv
 .env
-docs
 tests
 Makefile
-README.md
-CHANGELOG.md
 .mypy_cache
 .ruff_cache
 *.log
