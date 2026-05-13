@@ -9,12 +9,12 @@ class RAGPoisoningDetector(Guardrail):
     name = "rag_poisoning"
     is_input = True
 
-    SUSPICIOUS_PATTERNS = [
+    SUSPICIOUS_PATTERNS = (
         "ignore all previous",
         "disregard the following",
         "override with these",
         "instead of that, use",
-    ]
+    )
 
     def __init__(self, threshold: float = 0.3):
         self.threshold = threshold

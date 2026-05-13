@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .engine import Guardrail, GuardrailResult
 
+from typing import ClassVar
 TOXIC_KEYWORDS = [
     "hate", "kill yourself", "murder", "bomb", "terrorist", "racist",
     "sexist", "bigot", "fuck you", "die", "worthless",
@@ -34,7 +35,7 @@ class ToxicityFilter(Guardrail):
     name = "toxicity_filter"
     is_output = True  # sanitize outputs
 
-    TOXIC_MAP = {
+    TOXIC_MAP: ClassVar = {
         "fuck": "f***",
         "shit": "s***",
         "damn": "d***",
