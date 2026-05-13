@@ -106,6 +106,7 @@ class AdaptiveGuardrailTuner:
 @dataclass
 class TunerConfig:
     """Configuration for a single rail's threshold adjustment."""
+
     rail_name: str
     target_fp_rate: float = 0.05
     adjustment_step: float = 0.02
@@ -140,4 +141,6 @@ class GuardrailTuner:
         adjustment = self.config.adjustment_step * error
 
         new_threshold = self.config.initial_threshold + adjustment
-        return max(self.config.min_threshold, min(self.config.max_threshold, new_threshold))
+        return max(
+            self.config.min_threshold, min(self.config.max_threshold, new_threshold)
+        )
