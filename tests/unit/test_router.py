@@ -1,12 +1,13 @@
 """RedSea router — 5-mode classification via fast MLP."""
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
 import torch
 
 from mosaic.inference.router import RedSeaRouter, RouterConfig
 
 
-from unittest.mock import MagicMock
 def test_router_returns_one_of_five_modes():
     cfg = RouterConfig(d_model=64)
     router = RedSeaRouter(cfg)
