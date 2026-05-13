@@ -25,7 +25,7 @@ class MosaicConfig:
         d_model: Model hidden dimension
         n_heads: Number of attention heads (query)
         n_kv_heads: Number of key-value heads (for GQA)
-        d_ff: Feed-forward inner dimension (typically 4× d_model for SwiGLU)
+        d_ff: Feed-forward inner dimension (typically 4x d_model for SwiGLU)
         vocab_size: Token vocabulary size
         context_len: Maximum sequence length
         rope_theta: Base frequency for rotary position embeddings
