@@ -1,6 +1,5 @@
 """Exodus — hierarchical three-tier memory system.
 
-import contextlib
 
 Tiers:
 - Scratch  (short-term reasoning workspace, 512 tokens)
@@ -17,6 +16,7 @@ Features:
 """
 
 from __future__ import annotations
+import contextlib
 
 import sqlite3
 import time
