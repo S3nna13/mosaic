@@ -364,7 +364,7 @@ class ToolRegistry:
             # Return parsed ElementTree root
             return _ET.fromstring(text)
         if format == "lines":
-            return [l for l in text.splitlines() if l.strip()]
+            return [line for line in text.splitlines() if l.strip()]
         return text  # plain text
 
 

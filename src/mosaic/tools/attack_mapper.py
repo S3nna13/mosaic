@@ -18,9 +18,9 @@ Mapping categories:
   • Impact (TA0011)
 """
 from __future__ import annotations
-from typing import Any
 
 from dataclasses import dataclass
+from typing import Any
 
 import structlog
 
