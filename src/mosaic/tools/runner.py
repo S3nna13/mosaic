@@ -168,29 +168,26 @@ class SafeToolRunner:
         """Validate and normalize a command without executing it."""
         cmd_str = " ".join(command) if isinstance(command, list) else command.strip()
 
-        # Allowed tools check
+        # Extract the base command name (first token)
+        try:
+            first_token = shlex.split(cmd_str)[0]
+        except ValueError:
+            first_token = cmd_str.split()[0] if cmd_str.split() else ""
+
+        # Allowed tools check – if set, only whitelisted tools are permitted
         if self.allowed_tools:
-            # Extract the base command name (first token)
-            try:
-                first_token = shlex.split(cmd_str)[0]
-            except ValueError:
-                first_token = cmd_str.split()[0] if cmd_str.split() else ""
             if first_token and first_token not in self.allowed_tools:
                 raise SecurityError(
                     f"tool '{first_token}' disallowed — not in allowed_tools set"
                 )
-
-        # If tool is explicitly allowed, bypass dangerous pattern checks
-        if self.allowed_tools and first_token in self.allowed_tools:
+            # Tool is explicitly allowed → bypass all other checks
             return cmd_str
 
         # Safe-mode checks: destructive patterns (SecurityError) and network tool validation (ValidationError)
         if self.safe_mode:
-            # Network tools: require explicit allow (handled above). If not allowed, block with ValidationError.
+            # Network tools: require explicit allow; otherwise block with ValidationError
             if first_token in _NETWORK_TOOLS:
-                raise ValidationError(
-                    "external network targets are not allowed in safe mode"
-                )
+                raise ValidationError("external network targets are not allowed in safe mode")
 
             # Destructive system-altering patterns
             lowered = cmd_str.lower()
@@ -199,7 +196,9 @@ class SafeToolRunner:
                     raise SecurityError(
                         f"command contains disallowed pattern: '{pattern}'"
                     )
+
         return cmd_str
+
 
     def execute(self, command: list[str], **kwargs) -> ToolResult:
         """Synchronous convenience wrapper around run."""
