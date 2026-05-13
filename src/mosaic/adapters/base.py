@@ -68,5 +68,6 @@ class CircuitBreaker:
             self.failures = 0
             return result
 
+
 # Backwards compatibility: older code expects ModelAdapter name
 ModelAdapter = BaseAdapter
