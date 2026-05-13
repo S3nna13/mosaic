@@ -346,13 +346,14 @@ class ToolRegistry:
             return [t for t, tool in self._tools.items() if tool.layer == layer]
         return list(self._tools.keys())
 
-    def get(self, name: str) -> Tool | None:
-        return self._tools.get(name)
+    def get(self, name: str) -> Tool:
+        return self._tools[name]
 
     async def execute(self, name: str, **kwargs) -> ToolResult:
         """Execute a tool by name with argument validation."""
-        tool = self.get(name)
-        if not tool:
+        try:
+            tool = self.get(name)
+        except KeyError:
             raise ValueError(f"Unknown tool: {name}")
 
         # Validate arguments against spec
