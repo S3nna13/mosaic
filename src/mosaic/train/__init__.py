@@ -11,11 +11,11 @@ from pathlib import Path
 from typing import Any
 
 import torch
-import torch.nn.functional as F
+import torch.nn.functional as F  # noqa: N812
 
 from mosaic.adapters import build_adapter
 from mosaic.adapters.base import Message
-from mosaic.model.transformer import MosaicConfig, MosaicTransformer
+from mosaic.model.transformer import MosaicTransformer
 
 
 # ── Synthetic Data Generation ────────────────────────────────────────────────
@@ -29,7 +29,7 @@ class SyntheticExample:
 
 class SyntheticGenerator:
     """Generates synthetic instruction-response pairs via teacher model."""
-    PROMPTS = {
+    PROMPTS = {  # noqa: RUF012
         "qa": 'Generate a question-answer pair about {topic}. Return ONLY JSON: {"question": "...", "answer": "..."}',
         "summary": "Write a 2-sentence summary of: {text}",
         "code": "Write a Python function that {desc}. Include docstring and type hints. Return code only.",
