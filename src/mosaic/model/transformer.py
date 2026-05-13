@@ -64,12 +64,11 @@ class MosaicConfig:
         """Backwards-compatible alias for d_model."""
         return self.d_model
 
-
-
     @property
     def register_count(self) -> int:
         """Backwards compatibility alias for n_registers."""
         return self.n_registers
+
 
 class RMSNorm(nn.Module):
     """Root-mean-square layer norm (no bias)."""
@@ -303,7 +302,9 @@ class MosaicTransformer(nn.Module):
             [MosaicTransformerBlock(cfg, i) for i in range(cfg.n_layers)]
         )
         # Model-level Sinai registers (broadcastable across batch)
-        self.sinai_registers = nn.Parameter(torch.randn(1, cfg.n_registers, cfg.d_model))
+        self.sinai_registers = nn.Parameter(
+            torch.randn(1, cfg.n_registers, cfg.d_model)
+        )
         self.output_norm = RMSNorm(cfg.dim)
         self.lm_head = nn.Linear(cfg.dim, cfg.vocab_size, bias=False)
 
