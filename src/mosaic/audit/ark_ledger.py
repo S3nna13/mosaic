@@ -236,8 +236,8 @@ class ArkLedger:
         if not self._log_path:
             return []
         with self._log_path.open() as f:
-            all_lines = [line for line in f.readlines() if l.strip()]
-        entries = [ArkEntry(**json.loads(l)) for line in all_lines[-n:]]
+            all_lines = [line for line in f.readlines() if line.strip()]
+        entries = [ArkEntry(**json.loads(line)) for line in all_lines[-n:]]
         return entries
 
 
