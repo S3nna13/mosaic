@@ -35,19 +35,21 @@ class Guardrail:
 class GuardrailPipeline:
     """Sequential orchestration of multiple guardrails."""
 
-    def __init__(self, rails: list[type[Guardrail]]):
-        instances = []
-        for r in rails:
-            if isinstance(r, type):
-                instances.append(r())
-            else:
-                instances.append(r)
-        self._instances = instances
+    def __init__(self, rails: list[type[Guardrail] | Guardrail]):
+        """Accept either Guardrail subclasses (to be instantiated lazily) or already-instantiated Guardrail objects."""
+        self._instances: list[type[Guardrail] | Guardrail] = rails
 
     async def _async_check_input(self, text: str) -> list[GuardrailResult]:
+        # Resolve classes to instances on first use (lazy, one-time)
+        resolved: list[Guardrail] = []
+        for r in self._instances:
+            if isinstance(r, type):
+                resolved.append(r())
+            else:
+                resolved.append(r)
         results = [
             await r.check(text)
-            for r in self._instances
+            for r in resolved
             if getattr(r, "is_input", False)
         ]
         # Enrich with MITRE mapping
@@ -63,9 +65,15 @@ class GuardrailPipeline:
     async def _async_check_output(
         self, text: str, context: str | None = None
     ) -> list[GuardrailResult]:
+        resolved: list[Guardrail] = []
+        for r in self._instances:
+            if isinstance(r, type):
+                resolved.append(r())
+            else:
+                resolved.append(r)
         results = [
             await r.check(text, context)
-            for r in self._instances
+            for r in resolved
             if getattr(r, "is_output", False)
         ]
         if _mitre is not None:
