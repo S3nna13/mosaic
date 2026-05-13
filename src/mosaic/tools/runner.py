@@ -174,7 +174,7 @@ class SafeToolRunner:
         except ValueError:
             first_token = cmd_str.split()[0] if cmd_str.split() else ""
 
-        # Allowed tools check – if set, only whitelisted tools are permitted
+        # Allowed tools check - if set, only whitelisted tools are permitted
         if self.allowed_tools:
             if first_token and first_token not in self.allowed_tools:
                 raise SecurityError(
