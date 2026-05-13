@@ -34,7 +34,7 @@ import structlog
 logger = structlog.get_logger()
 
 
-class ActionType(str, Enum):
+class ActionType(str, Enum):  # noqa: UP042
     # Core lifecycle
     SESSION_START   = "session_start"
     SESSION_END     = "session_end"

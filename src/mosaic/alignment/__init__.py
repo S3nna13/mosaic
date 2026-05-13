@@ -6,10 +6,7 @@ from .covenant import AlignmentResult, CovenantAlignment, SafetyTier
 from .objectives import AlignmentObjective
 from .safety_gates import (
     GateEnforcer,
-    InvalidToolSchemaGate,
-    PrivateDataExtractionGate,
     SafetyGate,
-    UnsafeMemoryWriteGate,
 )
 
 __all__ = [
