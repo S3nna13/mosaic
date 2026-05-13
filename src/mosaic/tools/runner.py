@@ -271,7 +271,7 @@ class SafeToolRunner:
             # Kill process to ensure cleanup
             with contextlib.suppress(Exception):
                 proc.kill()
-            raise SecurityError("command timed out") from None
+            raise SecurityError("timeout") from None
         except Exception as e:
             completed = datetime.now(UTC)
             logger.error("tool_error", tool=tool_name, error=str(e))
