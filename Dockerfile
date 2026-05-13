@@ -11,6 +11,7 @@ RUN python -m build --wheel --out-dir /dist
 
 # Runtime stage
 FROM python:3.12-slim AS runtime
+ARG MOSAIC_EXTRAS=all
 
 LABEL org.opencontainers.image.title="MOSAIC"
 LABEL org.opencontainers.image.description="Memory-first, defense-in-depth LLM framework"
@@ -19,7 +20,8 @@ LABEL org.opencontainers.image.licenses="Apache-2.0"
 
 WORKDIR /app
 COPY --from=builder /dist/*.whl /wheels/
-RUN pip install --no-cache-dir /wheels/*.whl && rm -rf /wheels
+ARG MOSAIC_EXTRAS=all
+RUN pip install --no-cache-dir "/wheels/mosaic-*.whl[${MOSAIC_EXTRAS}]" && rm -rf /wheels
 
 # Non-root user for security
 RUN useradd --create-home --uid 1000 mosaic && chown -R mosaic:mosaic /app
