@@ -170,7 +170,7 @@ class GQAAttention(nn.Module):
         k = torch.repeat_interleave(k, dim=2, repeats=self.n_local)
         v = torch.repeat_interleave(v, dim=2, repeats=self.n_local)
 
-                # ── Build attention mask ────────────────────────────────────────────
+        # ── Build attention mask ────────────────────────────────────────────
         # Causal mask (upper triangular) for sequence-to-sequence attention
         attn_mask = torch.triu(torch.ones(T, T, device=x.device), diagonal=1).bool()
 
@@ -217,8 +217,7 @@ class GQAAttention(nn.Module):
             extra_mask = torch.zeros(T, extra_len, device=x.device, dtype=torch.bool)
             attn_mask = torch.cat([extra_mask, attn_mask], dim=1)  # [T, K_total]
 
-        
-# Scaled dot-product attention
+        # Scaled dot-product attention
         q = q.transpose(1, 2)  # [B, H, T, d]
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
