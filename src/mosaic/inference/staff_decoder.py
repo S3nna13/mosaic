@@ -103,14 +103,14 @@ class StaffDecoder:
         last_msg = req.messages[-1]
         prompt_text = last_msg.content
 
-        # Step 1 – Privacy scan
+        # Step 1 - Privacy scan
         cleaned, pii_findings = self.privacy.scan(prompt_text)
         if self.privacy.contains_secret_blockers(prompt_text):
             self.ledger.append(ActionType.INPUT_SCANNED, actor="system", decision="BLOCKED",
                                details={"reason": "secret_patterns", "findings": pii_findings})
             raise PermissionError("Input blocked: sensitive pattern detected")
 
-        # Step 2 – Input guardrails
+        # Step 2 - Input guardrails
         input_results: list[GuardrailResult] = []
         if req.guardrails and self.guardrails:
             input_results = await self.guardrails.check_input(cleaned)
@@ -120,7 +120,7 @@ class StaffDecoder:
                                    details={"rails": [b.name for b in blocked]})
                 raise PermissionError(f"Input blocked: {[b.reason for b in blocked]}")
 
-        # Step 3 – Determine mode
+        # Step 3 - Determine mode
         if req.mode:
             mode = req.mode
         elif self.local_model:
@@ -128,13 +128,13 @@ class StaffDecoder:
         else:
             mode = InferenceMode.FAST
 
-        # Step 4 – Memory tensors
+        # Step 4 - Memory tensors
         exodus_scratch = exodus_episode = exodus_archive = None
         if self.local_model:
             # placeholder — would tokenise recent turns here
             pass
 
-        # Step 5 – Generate with auto-escalation
+        # Step 5 - Generate with auto-escalation
         current_mode = mode
         stability = 1.0
         content = ""
@@ -163,12 +163,12 @@ class StaffDecoder:
             self.ledger.append(ActionType.ALIGNMENT_OVERRIDE, actor="router",
                                details={"reason": "low_stability", "mode": current_mode.value})
 
-        # Step 6 – Output guardrails
+        # Step 6 - Output guardrails
         output_results: list[GuardrailResult] = []
         if req.guardrails and self.guardrails_out:
             output_results = await self.guardrails_out.check_output(content)
 
-        # Step 7 – Security→Memory feedback
+        # Step 7 - Security→Memory feedback
         if req.guardrails:
             leaks = [r for r in output_results if r.name in ("pii", "secrets")]
             if leaks:
@@ -176,11 +176,11 @@ class StaffDecoder:
                                    details={"trigger": "output_leak", "rails": [r.name for r in leaks]})
                 self.memory.clear_all()
 
-        # Step 8 – Archive turn into Exodus
+        # Step 8 - Archive turn into Exodus
         if len(prompt_text) > 10:
             self.memory.add(Tier.SCRATCH, tokens=[], text=prompt_text[:200], priority=0.6, ttl_seconds=300)
 
-        # Step 9 – Audit log
+        # Step 9 - Audit log
         latency = time.time() - start
         self.ledger.append(
             ActionType.MODEL_INFERENCE,
