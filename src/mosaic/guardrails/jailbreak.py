@@ -11,7 +11,7 @@ class JailbreakDetector(Guardrail):
     name = "jailbreak_detection"
     is_input = True  # only runs on user prompts
 
-    JAILBREAK_PATTERNS: ClassVar = None  # noqa: RUF012
+    JAILBREAK_PATTERNS = (
         "ignore previous instructions",
         "ignore all instructions",
         "you are now",
@@ -29,7 +29,7 @@ class JailbreakDetector(Guardrail):
         "act as a human",
         "roleplay as",
         "unrestricted mode",
-    ]
+    )
 
     def __init__(self, threshold: float = 0.3):
         self.threshold = threshold
