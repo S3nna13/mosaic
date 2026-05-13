@@ -15,7 +15,7 @@ import fnmatch
 import ipaddress
 import os
 import shlex
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 

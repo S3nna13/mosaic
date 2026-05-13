@@ -1,5 +1,6 @@
 """Registry of 50+ built-in tools + plugin loader.
 
+import xml.etree.ElementTree as _ET
 Adapated from CERBERUS tool_registrar.py patterns.
 Tools are classified into layers corresponding to MOSAIC's guardrails and agent modes.
 """
@@ -364,7 +365,7 @@ class ToolRegistry:
             # Return parsed ElementTree root
             return _ET.fromstring(text)
         if format == "lines":
-            return [line for line in text.splitlines() if l.strip()]
+            return [line for line in text.splitlines() if line.strip()]
         return text  # plain text
 
 
