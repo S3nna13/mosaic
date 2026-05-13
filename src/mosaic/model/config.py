@@ -75,6 +75,8 @@ class MosaicConfig:
     scratch_capacity: int = 512
     episode_capacity: int = 4_096
     archive_capacity: int = 8_192
+    enable_persistence: bool = False
+    persistence_path: str | None = None
 
     # ── Agentic / Tool Use ────────────────────────────────────────────────────
     use_adaptive_compute: bool = True
