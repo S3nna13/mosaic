@@ -434,6 +434,5 @@ class MosaicForCausalLM(nn.Module):
             # Cross-entropy loss (shift inside)
             loss_fct = nn.CrossEntropyLoss()
             # Reshape for CE: [B*T, vocab_size] vs [B*T]
-            loss = loss_fct(logits.view(-1, logits.size(-1)), labels.view(-1))
-            return loss
+            return loss_fct(logits.view(-1, logits.size(-1)), labels.view(-1))
         return logits
