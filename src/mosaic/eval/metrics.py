@@ -119,3 +119,6 @@ __all__ = [
     "MetricResult",
     "RegexMatch",
 ]
+
+# Backwards compatibility alias
+JudgeLLM = LLMJudge
