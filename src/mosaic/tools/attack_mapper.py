@@ -81,6 +81,7 @@ class MITREMapper:
                 "remote code",
                 "exploit",
                 "vulnerability",
+                "injection",
             ],
             "T1059": ["command", "script", "powershell", "bash", "shell", "eval"],
             "T1055": ["injection", "dll", "process hollow", "thread hijack"],
