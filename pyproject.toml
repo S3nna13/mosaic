@@ -99,6 +99,7 @@ eval = [
 
 # Development and testing
 dev = [
+    "black>=24.0.0",
     "ruff>=0.15.0",
     "mypy>=1.8.0",
     "pytest>=8.0.0",
@@ -157,6 +158,7 @@ eval = [
     "matplotlib>=3.8.0",
 ]
 dev = [
+    "black>=24.0.0",
     "ruff>=0.15.0",
     "mypy>=1.8.0",
     "pytest>=8.0.0",
