@@ -1,5 +1,7 @@
 """Exodus — hierarchical three-tier memory system.
 
+import contextlib
+
 Tiers:
 - Scratch  (short-term reasoning workspace, 512 tokens)
 - Episode  (medium-term conversational context, 4k tokens)
@@ -66,10 +68,8 @@ class TierBuffer:
 
     def remove(self, entry_id: str) -> None:
         self._buffer.pop(entry_id, None)
-        try:
+        with contextlib.suppress(ValueError):
             self._lru.remove(entry_id)
-        except ValueError:
-            pass
 
     def all_entries(self) -> list[MemoryEntry]:
         return list(self._buffer.values())

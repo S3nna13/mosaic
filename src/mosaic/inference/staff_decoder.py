@@ -191,7 +191,7 @@ class StaffDecoder:
                 "latency_sec": round(latency, 3),
                 "tokens": usage,
                 "stability": stability,
-                "attempts": attempt + 1,
+                "attempts": _attempt + 1,
             },
         )
         return DecodeResponse(
