@@ -45,7 +45,7 @@ class MosaicConfig:
     rope_scaling: dict | None = None  # e.g. {"type":"dynamic","factor":2.0}
     use_exodus_cross_attn: bool = True  # inject memory every N layers
     exodus_inject_every: int = 4
-    n_registers: int = 16  # number of Sinai learnable tokens
+    n_registers: int = 16  # Sinai learnable tokens
     memory_slots: int = 0  # Exodus memory slots
     dropout: float = 0.1
     bias: bool = False
@@ -334,6 +334,8 @@ class MosaicTransformer(nn.Module):
         x = self.tok_embeddings(input_ids)
         cos, sin = self.rope(T, device=input_ids.device)
 
+        if memory_context is not None:
+            exodus_scratch = memory_context
         if memory_context is not None:
             exodus_scratch = memory_context
         exodus_inputs = (
