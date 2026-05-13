@@ -1,5 +1,6 @@
 """MOSAIC command-line interface.
 
+import time
 Commands:
   mosaic chat    — interactive REPL or single prompt
   mosaic serve   — run FastAPI server via uvicorn
@@ -68,7 +69,8 @@ def tools_run_cmd(tool_name, params):
     params_dict = {}
     for p in params:
         if "=" not in p:
-            console.print(f"[red]Invalid param {p} — use key=value[/red]"); return
+            console.print(f"[red]Invalid param {p} — use key=value[/red]")
+            return
         k, v = p.split("=", 1)
         params_dict[k] = v
     import asyncio
