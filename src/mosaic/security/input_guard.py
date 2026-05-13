@@ -16,7 +16,7 @@ class InputGuard:
         r"(?i)reveal (?:your|the) system prompt",
         r"(?i)act as a (?:human|admin|developer)",
         r"(?i)jailbreak",
-    ]
+    )
 
     def __init__(self, reject_pii: bool = True):
         self.reject_pii = reject_pii
