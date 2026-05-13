@@ -187,7 +187,9 @@ class SafeToolRunner:
         if self.safe_mode:
             # Network tools: require explicit allow (handled above). If not allowed, block with ValidationError.
             if first_token in _NETWORK_TOOLS:
-                raise ValidationError("external network targets are not allowed in safe mode")
+                raise ValidationError(
+                    "external network targets are not allowed in safe mode"
+                )
 
             # Destructive system-altering patterns
             lowered = cmd_str.lower()
