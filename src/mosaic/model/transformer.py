@@ -196,6 +196,7 @@ class GQAAttention(nn.Module):
                     self.head_dim, self.cfg.max_seq_len, self.cfg.rope_theta
                 )(km.size(1), x.device)
                 km = RotaryEmbedding.apply_rope(km, cos_m, sin_m)
+                vm = RotaryEmbedding.apply_rope(vm, cos_m, sin_m)
                 km = torch.repeat_interleave(km, dim=2, repeats=self.n_local)
                 vm = torch.repeat_interleave(vm, dim=2, repeats=self.n_local)
                 k = torch.cat([k, km], dim=1)
@@ -205,7 +206,6 @@ class GQAAttention(nn.Module):
             regs = self.sinai_registers.unsqueeze(0).expand(B, -1, -1)  # [B, R, dim]
             kr = self.wk(regs).view(B, -1, self.n_kv_heads, self.head_dim)
             vr = self.wv(regs).view(B, -1, self.n_kv_heads, self.head_dim)
-            kr = RotaryEmbedding.apply_rope(kr, cos[: kr.size(1)], sin[: kr.size(1)])
             kr = torch.repeat_interleave(kr, dim=2, repeats=self.n_local)
             vr = torch.repeat_interleave(vr, dim=2, repeats=self.n_local)
             k = torch.cat([k, kr], dim=1)
