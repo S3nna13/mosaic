@@ -237,8 +237,7 @@ class ArkLedger:
             return []
         with self._log_path.open() as f:
             all_lines = [line for line in f.readlines() if line.strip()]
-        entries = [ArkEntry(**json.loads(line)) for line in all_lines[-n:]]
-        return entries
+        return [ArkEntry(**json.loads(line)) for line in all_lines[-n:]]
 
 
 # ── Global singleton instance ─────────────────────────────────────────────────

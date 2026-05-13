@@ -51,7 +51,9 @@ def tools_list_cmd(layer):
     """List available tools."""
     names = tool_registry.list_tools(layer=layer)
     table = Table(title=f"Tools ({layer or 'all'})")
-    table.add_column("Name"); table.add_column("Layer"); table.add_column("Description")
+    table.add_column("Name")
+    table.add_column("Layer")
+    table.add_column("Description")
     for name in names:
         spec = tool_registry.get(name)
         table.add_row(name, spec.layer, spec.description[:60])
