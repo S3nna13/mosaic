@@ -1,8 +1,8 @@
 """Guardrail base types + pipeline orchestration."""
 
-import asyncio
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass, field
 
 # Optional MITRE mapper — guardrails work without it
