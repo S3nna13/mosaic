@@ -16,6 +16,9 @@ from mosaic.core.config import load_config
 from mosaic.inference.staff_decoder import DecodeRequest, StaffDecoder
 from mosaic.tools.registry import registry as tool_registry
 
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+
 logger = structlog.get_logger()
 
 app = FastAPI(
@@ -192,8 +195,6 @@ async def status():
 @app.get("/metrics")
 async def metrics_endpoint():
     """Prometheus-style metrics exposition."""
-from pathlib import Path
-from fastapi.staticfiles import StaticFiles
     return {
         "mosaic_requests_total": _metrics["requests_total"],
         "mosaic_guardrail_blocks_total": _metrics["guardrail_blocks"],
@@ -253,8 +254,6 @@ async def startup_event():
 
 
 
-
-
 _dashboard_path = Path(__file__).parent.parent / "dashboard"
 if _dashboard_path.exists():
     app.mount("/dashboard", StaticFiles(directory=str(_dashboard_path), html=True), name="dashboard")
@@ -299,7 +298,7 @@ async def train_sft_endpoint(req: SFTRequest):
             examples = [SyntheticExample(**ex) for ex in req.examples]
         elif req.template:
             examples = await gen.batch(req.samples or 10, req.template, **req.template_params)
-        # Trainer would be configured here (stub – actual training requires GPU)
+        # Trainer would be configured here (stub - actual training requires GPU)
         return {"status": "started", "mode": "sft", "examples_generated": len(examples) if examples else 0}
     except Exception as e:
         logger.error("sft_failed", error=str(e))
