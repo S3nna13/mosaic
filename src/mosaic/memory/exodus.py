@@ -18,6 +18,7 @@ Features:
 from __future__ import annotations
 
 import contextlib
+import json
 import sqlite3
 import time
 import uuid
@@ -26,7 +27,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 import torch
-import json
 import torch.nn as nn
 
 
@@ -217,7 +217,7 @@ class ExodusMemoryStore:
         )
         buf = self._get_buffer(tier)
         buf.add(entry)
-        
+
         # Auto-rotate oldest SCRATCH entry to EPISODE on overflow
         if tier is Tier.SCRATCH:
             while len(self.scratch._buffer) > self.scratch.capacity:
@@ -228,9 +228,8 @@ class ExodusMemoryStore:
                     if cand in self.scratch._buffer:
                         oldest_id = cand
                         break
-                    else:
-                        # stale ID, discard
-                        self.scratch._lru.popleft()
+                    # stale ID, discard
+                    self.scratch._lru.popleft()
                 if oldest_id is None:
                     break
                 self.consolidate_upwards(oldest_id, Tier.EPISODE)
@@ -354,7 +353,7 @@ class ExodusMemoryStore:
         )
         buf = self._get_buffer(tier)
         buf.add(entry)
-        
+
         # Auto-rotate oldest SCRATCH entry to EPISODE on overflow
         if tier is Tier.SCRATCH:
             while len(self.scratch._buffer) > self.scratch.capacity:
