@@ -48,9 +48,7 @@ class GuardrailPipeline:
             else:
                 resolved.append(r)
         results = [
-            await r.check(text)
-            for r in resolved
-            if getattr(r, "is_input", False)
+            await r.check(text) for r in resolved if getattr(r, "is_input", False)
         ]
         # Enrich with MITRE mapping
         if _mitre is not None:
