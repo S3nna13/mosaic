@@ -15,6 +15,7 @@ import asyncio
 import json
 import sys
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 
 import click
@@ -201,7 +202,7 @@ def audit_cmd(lines):
     ledger = get_ledger()
     entries = ledger.tail(lines)
     for e in entries:
-        ts = datetime.fromtimestamp(e.timestamp, tz=timezone.utc).strftime("%H:%M:%S")
+        ts = datetime.fromtimestamp(e.timestamp, tz=UTC).strftime("%H:%M:%S")
         console.print(f"[dim]{ts}[/dim]  [bold]{e.action.value}[/bold]  {e.details}")
 
 
