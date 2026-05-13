@@ -1,6 +1,5 @@
 """MOSAIC command-line interface.
 
-import time
 Commands:
   mosaic chat    — interactive REPL or single prompt
   mosaic serve   — run FastAPI server via uvicorn
@@ -12,6 +11,7 @@ Commands:
 """
 from __future__ import annotations
 
+import time
 import asyncio
 import json
 import sys
@@ -170,7 +170,11 @@ def guard_cmd(text, mode):
             results = await pipeline.check_output(text)
 
         table = Table(title=f"Guardrail {mode.upper()} scan")
-        table.add_column("Rail"); table.add_column("Passed"); table.add_column("Score"); table.add_column("Severity"); table.add_column("Reason")
+        table.add_column("Rail")
+ table.add_column("Passed")
+ table.add_column("Score")
+ table.add_column("Severity")
+ table.add_column("Reason")
         for r in results:
             col = "green" if r.passed else "red"
             table.add_row(r.name, str(r.passed), f"{r.score:.2f}", r.severity, r.reason or "-", style=col)
