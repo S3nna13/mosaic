@@ -67,7 +67,6 @@ class TierBuffer:
     def add(self, entry: MemoryEntry) -> None:
         self._buffer[entry.id] = entry
         self._lru.append(entry.id)
-        self._enforce_capacity()
 
     def get(self, entry_id: str) -> MemoryEntry | None:
         return self._buffer.get(entry_id)
@@ -217,6 +216,23 @@ class ExodusMemoryStore:
         )
         buf = self._get_buffer(tier)
         buf.add(entry)
+        
+        # Auto-rotate oldest SCRATCH entry to EPISODE on overflow
+        if tier is Tier.SCRATCH:
+            while len(self.scratch._buffer) > self.scratch.capacity:
+                # Find oldest entry still in SCRATCH
+                oldest_id = None
+                while self.scratch._lru:
+                    cand = self.scratch._lru[0]
+                    if cand in self.scratch._buffer:
+                        oldest_id = cand
+                        break
+                    else:
+                        # stale ID, discard
+                        self.scratch._lru.popleft()
+                if oldest_id is None:
+                    break
+                self.consolidate_upwards(oldest_id, Tier.EPISODE)
         self._persist_entry(entry)
         return entry_id
 
