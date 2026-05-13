@@ -49,4 +49,7 @@ __all__ = [
     "OllamaAdapter",
     "OpenAIAdapter",
     "build_adapter",
+    "ModelAdapter",
 ]
+# Backwards compatibility: ModelAdapter was renamed to BaseAdapter
+ModelAdapter = BaseAdapter
