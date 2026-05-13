@@ -53,7 +53,7 @@ class MosaicConfig:
     d_model: int = 2048
     n_heads: int = 16
     n_kv_heads: int = 8
-    d_ff: int = 5632  # ~2.67× d_model for SwiGLU (2× for standard MLP)
+    d_ff: int = 5632  # ~2.67x d_model for SwiGLU (2x for standard MLP)
     vocab_size: int = 128_000
     context_len: int = 8192
     rope_theta: float = 500_000.0
