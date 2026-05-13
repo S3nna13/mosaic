@@ -391,3 +391,49 @@ def build_transformer_from_config(cfg: AigisConfig) -> MosaicTransformer:
         rope_theta=cfg.model.rope_theta or 10000.0,
     )
     return MosaicTransformer(mc)
+
+
+class MosaicForCausalLM(nn.Module):
+    """Causal language model wrapper combining MosaicTransformer with an LM head.
+
+    Minimal implementation for type completeness. The transformer output
+    (logits) are already projected to vocab_size inside MosaicTransformer's
+    final layer norm + embed_out projection in the original design; here we
+    keep a separate linear head for clarity and possible future use.
+    """
+
+    def __init__(self, config: MosaicConfig):
+        super().__init__()
+        self.config = config
+        self.transformer = MosaicTransformer(config)
+        # LM head: d_model -> vocab_size
+        self.lm_head = nn.Linear(config.d_model, config.vocab_size, bias=False)
+
+    def forward(
+        self,
+        input_ids: torch.Tensor,
+        attention_mask: torch.Tensor | None = None,
+        position_ids: torch.Tensor | None = None,
+        labels: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        """
+        Args:
+            input_ids: [B, T] token IDs
+            attention_mask: optional [B, T] mask (1=keep, 0=mask)
+            position_ids: optional rotary positions
+            labels: optional [B, T] target token IDs for loss
+
+        Returns:
+            If labels provided: scalar loss tensor.
+            Else: logits tensor [B, T, vocab_size].
+        """
+        hidden = self.transformer(input_ids, attention_mask, position_ids)
+        logits = self.lm_head(hidden)
+
+        if labels is not None:
+            # Cross-entropy loss (shift inside)
+            loss_fct = nn.CrossEntropyLoss()
+            # Reshape for CE: [B*T, vocab_size] vs [B*T]
+            loss = loss_fct(logits.view(-1, logits.size(-1)), labels.view(-1))
+            return loss
+        return logits
