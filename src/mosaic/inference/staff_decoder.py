@@ -90,10 +90,11 @@ class StaffDecoder:
 
         # Subsystems
         self.memory = ExodusMemoryStore(
-            scratch_cap=cfg.memory.scratch_capacity,
-            episode_cap=cfg.memory.episode_capacity,
-            archive_cap=cfg.memory.archive_capacity,
+            scratch_capacity=cfg.memory.scratch_capacity,
+            episode_capacity=cfg.memory.episode_capacity,
+            archive_capacity=cfg.memory.archive_capacity,
             persist_path=cfg.memory.persistence_path,
+            enable_persistence=cfg.memory.enable_persistence,
         )
         self.sinai = None  # TODO: SinaiRegisters(dim=cfg.model.width, count=16)
         self.privacy = PrivacyFilter()
