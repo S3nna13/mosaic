@@ -40,13 +40,27 @@ class PrivacyRule:
     description: str
 
 
+
+@dataclass
+class PrivacyHit:
+    entity_type: str
+    span: tuple[int, int]
+    sample: str
+
+@dataclass
+class PrivacyScanResult:
+    hits: list[PrivacyHit]
+    redacted_text: str
+    action: PrivacyAction
+
 class PrivacyFilter:
     """Detect and handle PII / secrets in text."""
 
     _compiled_rules: list[PrivacyRule]
 
-    def __init__(self, default_action: PrivacyAction = PrivacyAction.REDACT):
+    def __init__(self, default_action: PrivacyAction = PrivacyAction.REDACT, min_confidence: float = 1.0):
         self.default_action = default_action
+        self.min_confidence = min_confidence
         self._compiled_rules = self._build_rules()
 
     def _build_rules(self) -> list[PrivacyRule]:
@@ -54,86 +68,86 @@ class PrivacyFilter:
             # ── Personal identifiers ────────────────────────────────────────
             (
                 r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
-                "email",
+                "EMAIL",
                 PrivacyAction.REDACT,
                 "Email address",
             ),
             (
                 r"\b\d{3}-\d{3}-\d{4}(?:\D|$)",
-                "phone_us",
+                "PHONE",
                 PrivacyAction.REDACT,
                 "US phone number",
             ),
             (
                 r"\b(?:\+?1[-.\s]?)?\(?[2-9]\d{2}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b",
-                "phone_intl",
+                "PHONE",
                 PrivacyAction.REDACT,
                 "International phone",
             ),
             (
                 r"\b\d{3}-\d{2}-\d{4}\b",
-                "ssn",
+                "SSN",
                 PrivacyAction.REDACT,
                 "US Social Security Number",
             ),
             (
                 r"\b(?!000|666)9\d{2}-(?!00)\d{2}-(?!0000)\d{4}\b",
-                "itin",
+                "ITIN",
                 PrivacyAction.REDACT,
                 "US Individual Taxpayer ID",
             ),
             # ── Financial ───────────────────────────────────────────────────
             (
                 r"\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14})\b",
-                "credit_card",
+                "CREDIT_CARD",
                 PrivacyAction.REDACT,
                 "Credit card (Visa/MC)",
             ),
             (
                 r"\b3[47][0-9]{13}\b",
-                "amex",
+                "CREDIT_CARD",
                 PrivacyAction.REDACT,
                 "American Express card",
             ),
             # ── API keys & tokens ────────────────────────────────────────────
             (
                 r"\b(sk|sk-|sk_prod|sk_test)-[A-Za-z0-9]{48}",
-                "openai_key",
+                "API_KEY",
                 PrivacyAction.BLOCK,
                 "OpenAI secret key",
             ),
             (
                 r"\b(sk-ant)-[A-Za-z0-9]{48,}",
-                "anthropic_key",
+                "API_KEY",
                 PrivacyAction.BLOCK,
                 "Anthropic API key",
             ),
             (
                 r"\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36}",
-                "github_token",
+                "API_KEY",
                 PrivacyAction.BLOCK,
                 "GitHub personal access token",
             ),
             (
                 r"\b(?:AIza[0-9A-Za-z\\-_]{35})\b",
-                "google_key",
+                "API_KEY",
                 PrivacyAction.BLOCK,
                 "Google API key",
             ),
             (
                 r"\b(?:AKIA|A3T|AGPA)[A-Z0-9]{16}\b",
-                "aws_access_key",
+                "API_KEY",
                 PrivacyAction.BLOCK,
                 "AWS access key ID pattern",
             ),
             # ── Network ───────────────────────────────────────────────────────
             (
                 r"\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b",
-                "ip_address",
+                "IP_ADDRESS",
                 PrivacyAction.REDACT,
                 "IP address",
             ),
-            (r"\bhttps?://[^\s/$.?#].[^\s]*\b", "url", PrivacyAction.REDACT, "URL"),
+            (r"\bhttps?://[^\s/$.?#].[^\s]*\b", "URL", PrivacyAction.REDACT, "URL"),
         ]
         compiled = []
         for pat, t, act, desc in rules:
