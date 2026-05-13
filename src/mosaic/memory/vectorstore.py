@@ -93,7 +93,7 @@ class VectorStore:
         h = hashlib.sha256(text.encode()).digest()
         # Convert to floats in [-1,1]
         arr = np.frombuffer(h[: self.dimension * 4], dtype=np.uint8).astype(np.float32)
-        arr = (arr / 255.0) * 2 - 1
+        return (arr / 255.0) * 2 - 1
         return arr
 
     def add(self, text: str, metadata: dict | None = None) -> str:
@@ -117,7 +117,7 @@ class VectorStore:
         q_emb = self._embed(query)
         if self._backend == "chroma":
             results = self.collection.query(query_embeddings=[q_emb.tolist()], n_results=top_k)
-            return list(zip(results["ids"][0], results["distances"][0], results["documents"][0]))
+            return list(zip(strict=True, results["ids"][0], results["distances"][0], results["documents"][0]))
         if self._embeddings is None or len(self.entries) == 0:
             return []
         sims = np.dot(self._embeddings, q_emb) / (np.linalg.norm(self._embeddings, axis=1) * np.linalg.norm(q_emb) + 1e-8)
