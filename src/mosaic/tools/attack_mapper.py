@@ -1,6 +1,5 @@
 """MITRE ATT&CK Technique Mapper — classifies security findings.
 
-from typing import Any
 Minimal implementation: maps guardrail findings and tool results to ATT&CK
 technique IDs via keyword matching. In production, replace with
 mitreattack-python library for accurate STIX-based mapping.
@@ -19,6 +18,7 @@ Mapping categories:
   • Impact (TA0011)
 """
 from __future__ import annotations
+from typing import Any
 
 from dataclasses import dataclass
 

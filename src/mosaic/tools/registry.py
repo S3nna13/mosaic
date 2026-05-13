@@ -326,7 +326,7 @@ class ToolRegistry:
         cmd = tool.render(**kwargs)
 
         # Audit log before execution
-        session_id = self._ledger.start_session()   # returns existing if already open
+        _session_id = self._ledger.start_session()   # returns existing if already open
         self._ledger.append(
             ActionType.TOOL_CALL,
             actor="agent",
