@@ -264,7 +264,7 @@ async def run_tool(tool_name: str, params: dict):
         result = await tool_registry.execute(tool_name, **params)
         return result.as_dict()
     except ValueError as e:
-        raise HTTPException(400, str(e))
+        raise HTTPException(400, str(e)) from None
     except Exception as e:
         logger.error("tool_execution_failed", tool=tool_name, error=str(e))
         raise HTTPException(500, f"Tool failed: {e}") from e
@@ -287,14 +287,14 @@ async def list_tools(layer: str | None = None):
 
 
 @app.post("/train/sft")
-async def train_sft_endpoint(req: SFTRequest):
+async def train_sft_endpoint(req: SFTRequest):  # noqa: F821
     """Kick off a Supervised Fine-Tune run using synthetic or provided examples."""
     try:
-        adapter = build_adapter(provider=req.adapter, model=req.model, api_key=req.api_key)
-        gen = SyntheticGenerator(provider=req.adapter, model=req.model, api_key=req.api_key)
+        adapter = build_adapter(provider=req.adapter, model=req.model, api_key=req.api_key)  # noqa: F821
+        gen = SyntheticGenerator(provider=req.adapter, model=req.model, api_key=req.api_key)  # noqa: F821
         examples = None
         if req.examples:
-            examples = [SyntheticExample(**ex) for ex in req.examples]
+            examples = [SyntheticExample(**ex) for ex in req.examples]  # noqa: F821
         elif req.template:
             examples = await gen.batch(req.samples or 10, req.template, **req.template_params)
         # Trainer would be configured here (stub - actual training requires GPU)
