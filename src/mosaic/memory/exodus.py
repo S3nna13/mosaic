@@ -89,6 +89,7 @@ class TierBuffer:
             # Evict least-recently-used entry that is still in the buffer
             oldest = self._lru.popleft()
             self._buffer.pop(oldest, None)
+
     def token_tensor(self) -> torch.Tensor:
         """Return concatenated tokens as a 1-D LongTensor."""
         all_toks: list[int] = []
@@ -103,8 +104,6 @@ class ExodusMemoryStore:
     """Singleton managing all three memory tiers with priority consolidation."""
 
     # FIXME: make per-instance (not singleton) when multi-tenant
-
-
 
     def __init__(
         self,
