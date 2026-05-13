@@ -2,7 +2,7 @@
 
 All notable changes to MOSAIC are documented here.
 
-## [Unreleased] — Current
+## [0.3.0] — 2026-05-13
 
 ### Added
 - **Unified framework** combining Moses (memory-first transformer), Setus (hardened security), and Aigis (multi-provider orchestration, eval)
