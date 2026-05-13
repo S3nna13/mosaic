@@ -4,9 +4,9 @@ Adapated from CERBERUS tool_registrar.py patterns.
 Tools are classified into layers corresponding to MOSAIC's guardrails and agent modes.
 """
 from __future__ import annotations
-import xml.etree.ElementTree as _ET
 
 import json
+import xml.etree.ElementTree as _ET  # noqa: N814
 from dataclasses import dataclass, field
 from typing import Any
 
