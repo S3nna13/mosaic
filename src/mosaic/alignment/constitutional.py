@@ -1,6 +1,7 @@
 """ConstitutionalRegistry — nine hard/soft/gate constraints."""
 
 from __future__ import annotations
+from typing import ClassVar
 
 from dataclasses import dataclass
 
@@ -22,7 +23,7 @@ class ConstitutionalConstraint:
 class ConstitutionalRegistry:
     """Singleton registry of all constitutional constraints."""
 
-    _constraints: list[ConstitutionalConstraint] = []
+    _constraints: ClassVar[list[ConstitutionalConstraint]] = []
     _initialized: bool = False
 
     @classmethod

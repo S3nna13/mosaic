@@ -18,13 +18,13 @@ class SafetyGate(ABC):
 class UnsafeMemoryWriteGate(SafetyGate):
     """Reject memory writes containing PII or secrets."""
 
-    PII_PATTERNS = [
+    PII_PATTERNS = (
         r"\\b\\d{3}-\\d{2}-\\d{4}\\b",  # SSN
         r"\\b[\\d]{10,}\\b",
         r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",  # email
         r"\\b(?:[0-9]{1,3}\\.){3}[0-9]{1,3}\\b",  # IPv4
     ]
-
+)
     def check(self, context: dict[str, Any]) -> tuple[bool, str | None]:
         content = str(context.get("memory_content", ""))
         for pattern in self.PII_PATTERNS:
@@ -57,7 +57,7 @@ class PrivateDataExtractionGate(SafetyGate):
         r"(?i)reveal (?:your|the) (?:system|hidden) (?:prompt|instructions)",
         r"(?i)print your system prompt",
     ]
-
+)
     def check(self, context: dict[str, Any]) -> tuple[bool, str | None]:
         prompt = str(context.get("prompt", ""))
         for pattern in self.INJECT_PATTERNS:
@@ -88,3 +88,4 @@ __all__ = [
     "SafetyGate",
     "UnsafeMemoryWriteGate",
 ]
+)
