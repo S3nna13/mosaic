@@ -200,7 +200,7 @@ class ArkLedger:
         self._chain_tip = entry
         logger.debug("audit_entry", id=entry.id, hash=entry.hash, action=entry.action.value)
 
-    def verify_chain(self) -> Tuple[bool, str | None]:
+    def verify_chain(self) -> tuple[bool, str | None]:
         """Walk entire chain and verify hashes. Returns (ok, bad_entry_id_or_None)."""
         if not self._log_path or not self._log_path.exists():
             return True, None
@@ -217,7 +217,7 @@ class ArkLedger:
     def export_siem(self, dest: Path, format: str = "json") -> None:
         """Copy ledger into SIEM-friendly format."""
         if format == "json":
-            dest.write_text(json.dumps([json.loads(l) for l in self._log_path.read_text().splitlines() if l.strip()], indent=2))
+            dest.write_text(json.dumps([json.loads(line) for line in self._log_path.read_text().splitlines() if line.strip()], indent=2))
         elif format == "syslog":
             lines = []
             for line in self._log_path.read_text().splitlines():
