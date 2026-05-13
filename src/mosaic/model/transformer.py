@@ -284,7 +284,7 @@ class MosaicTransformer(nn.Module):
         exodus_archive: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Returns *logits* only — sampling performed by StaffDecoder."""
-        _B, T = input_ids.shape  # noqa: N806, RUF059
+        _B, T = input_ids.shape    # noqa: N806
         x = self.tok_embeddings(input_ids)
         cos, sin = self.rope(T, device=input_ids.device)
 
@@ -319,7 +319,7 @@ class MosaicTransformer(nn.Module):
             probs = F.softmax(logits, dim=-1)
 
             # top-p nucleus sampling
-            sorted_probs, sorted_idx = torch.sort(probs, descending=True)
+            sorted_probs, _sorted_idx = torch.sort(probs, descending=True)
             cumsum = torch.cumsum(sorted_probs, dim=-1)
             mask = cumsum > top_p
             mask[..., 0] = False  # keep at least one
@@ -334,7 +334,7 @@ class MosaicTransformer(nn.Module):
             # verifier head uses last-layer hidden states (accessed via hooks)
             # Here we approximate stability as max-prob of sampled token's top-k neighbours
             with torch.no_grad():
-                top_k = torch.topk(probs, k=5).values
+                _top_k = torch.topk(probs, k=5).values
                 entropy = -torch.sum(probs * torch.log(probs + 1e-9), dim=-1)
                 stability = 1.0 - (entropy / math.log(probs.shape[-1]))  # normalised [0,1]
                 stabilities.append(stability.item())
