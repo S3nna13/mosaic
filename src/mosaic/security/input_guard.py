@@ -10,7 +10,7 @@ from .privacy import PrivacyFilter
 class InputGuard:
     """Pre-process input guard: detect prompt injection + PII leakage."""
 
-    INJECT_PATTERNS = [
+    INJECT_PATTERNS = (
         r"(?i)ignore (?:previous|above|system) instructions",
         r"(?i)disregard all instructions",
         r"(?i)reveal (?:your|the) system prompt",
