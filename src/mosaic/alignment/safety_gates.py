@@ -56,7 +56,6 @@ class PrivateDataExtractionGate(SafetyGate):
         r"(?i)reveal (?:your|the) (?:system|hidden) (?:prompt|instructions)",
         r"(?i)print your system prompt",
     ]
-)
     def check(self, context: dict[str, Any]) -> tuple[bool, str | None]:
         prompt = str(context.get("prompt", ""))
         for pattern in self.INJECT_PATTERNS:
