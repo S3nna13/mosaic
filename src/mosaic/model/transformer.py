@@ -170,9 +170,11 @@ class GQAAttention(nn.Module):
         k = torch.repeat_interleave(k, dim=2, repeats=self.n_local)
         v = torch.repeat_interleave(v, dim=2, repeats=self.n_local)
 
-        # ── Build attention mask ────────────────────────────────────────────
-        # Causal mask plus optional memory-causality (memory tokens always visible)
+                # ── Build attention mask ────────────────────────────────────────────
+        # Causal mask (upper triangular) for sequence-to-sequence attention
         attn_mask = torch.triu(torch.ones(T, T, device=x.device), diagonal=1).bool()
+
+        # ── Optional Exodus & Sinai memory injection ────────────────────────
         if (
             exodus_scratch is not None
             or exodus_episode is not None
@@ -198,31 +200,25 @@ class GQAAttention(nn.Module):
                 k = torch.cat([k, km], dim=1)
                 v = torch.cat([v, vm], dim=1)
 
-                # ── Sinai Registers ─────────────────────────────────────────
-                # Learnable tokens injected at start of every sequence
-                regs = self.sinai_registers.unsqueeze(0).expand(
-                    B, -1, -1
-                )  # [B, R, dim]
-                kr = self.wk(regs).view(B, -1, self.n_kv_heads, self.head_dim)
-                vr = self.wv(regs).view(B, -1, self.n_kv_heads, self.head_dim)
-                kr = torch.repeat_interleave(kr, dim=2, repeats=self.n_local)
-                vr = torch.repeat_interleave(vr, dim=2, repeats=self.n_local)
-                k = torch.cat([k, kr], dim=1)
-                v = torch.cat([v, vr], dim=1)
+            # ── Sinai Registers ─────────────────────────────────────────
+            regs = self.sinai_registers.unsqueeze(0).expand(B, -1, -1)  # [B, R, dim]
+            kr = self.wk(regs).view(B, -1, self.n_kv_heads, self.head_dim)
+            vr = self.wv(regs).view(B, -1, self.n_kv_heads, self.head_dim)
+            kr = RotaryEmbedding.apply_rope(kr, cos[: kr.size(1)], sin[: kr.size(1)])
+            kr = torch.repeat_interleave(kr, dim=2, repeats=self.n_local)
+            vr = torch.repeat_interleave(vr, dim=2, repeats=self.n_local)
+            k = torch.cat([k, kr], dim=1)
+            v = torch.cat([v, vr], dim=1)
 
-                # ── Causal mask extended for memory + registers ─────────────
-                m_tot = k.size(1) - T  # extra tokens prepended to K
-                causal_ext = torch.zeros(T, m_tot, device=x.device, dtype=torch.bool)
-                attn_mask = torch.cat([causal_ext, attn_mask], dim=1)  # [T, m_tot+T]
-                # lower-triangular for the (M+T) side
-                attn_mask = torch.triu(
-                    torch.ones(T + m_tot, T + m_tot, device=x.device), diagonal=1
-                ).bool()
-                # but queries (real tokens) must NOT see *future* real tokens; they CAN see all memory
-                # mask shape: [T_query, K_total]
-                # We'll build it incrementally later; for now keep simple causal for speed.
+        # ── Extend attention mask for any additional key tokens ───────────────
+        K_total = k.size(1)
+        extra_len = K_total - T
+        if extra_len > 0:
+            extra_mask = torch.zeros(T, extra_len, device=x.device, dtype=torch.bool)
+            attn_mask = torch.cat([extra_mask, attn_mask], dim=1)  # [T, K_total]
 
-        # Scaled dot-product attention
+        
+# Scaled dot-product attention
         q = q.transpose(1, 2)  # [B, H, T, d]
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
