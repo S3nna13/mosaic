@@ -24,7 +24,7 @@ import structlog
 logger = structlog.get_logger()
 
 
-class PrivacyAction(str, Enum):
+class PrivacyAction(str, Enum):  # noqa: UP042
     REDACT   = "redact"
     BLOCK    = "block"
     LOG      = "log"

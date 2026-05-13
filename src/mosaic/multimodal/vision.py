@@ -1,10 +1,10 @@
 """Multi-modal vision encoder base + CLIP-style image projector.
 
-import io
 Future: integrate with OpenAI GPT-4o, Claude 3.5 Sonnet vision, or local SigLIP.
 This module provides the contract for image→embedding and image+text→response.
 """
 from __future__ import annotations
+import io
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
