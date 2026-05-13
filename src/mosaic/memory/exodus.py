@@ -156,7 +156,7 @@ class ExodusMemoryStore:
             eid, tier_s, tokens_s, text, prio, created, expires, _meta = row
             tier = Tier(tier_s)
             entry = MemoryEntry(
-                id=eid,
+                id=json.loads(eid),
                 tier=tier,
                 tokens=eval(tokens_s),  # safe: our own JSON dumps
                 text=text,
