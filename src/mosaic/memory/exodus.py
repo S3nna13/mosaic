@@ -27,7 +27,7 @@ import torch
 import torch.nn as nn
 
 
-class Tier(str, Enum):
+class Tier(str, Enum):  # noqa: UP042
     SCRATCH = "scratch"
     EPISODE = "episode"
     ARCHIVE = "archive"
@@ -39,7 +39,7 @@ class MemoryEntry:
     tier: Tier
     tokens: list[int]          # token IDs (for model ingestion)
     text: str                  # human-readable representation
-    priority: float            # 0–1  (higher → keep longer)
+    priority: float            # 0-1  (higher → keep longer)
     created_at: float = field(default_factory=time.time)
     expires_at: float | None = None
     metadata: dict[str, object] = field(default_factory=dict)

@@ -140,7 +140,7 @@ class StaffDecoder:
         content = ""
         usage = {}
 
-        for attempt in range(2):  # fast → deliberate
+        for _attempt in range(2):  # fast → deliberate
             if self.local_model:
                 # stub: pretend we ran the model
                 content = f"[{current_mode.value}] {prompt_text[:60]}..."
