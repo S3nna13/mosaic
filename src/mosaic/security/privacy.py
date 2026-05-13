@@ -196,7 +196,7 @@ class PrivacyFilter:
         redacted = text
         if effective_action == PrivacyAction.REDACT:
             for start, end, t, _ in reversed(cleaned):
-                redacted = redacted[:start] + f"[REDACTED:{t}]" + redacted[end:]
+                redacted = redacted[:start] + f"[{t}]" + redacted[end:]
 
         # Build hit objects
         hits: list[PrivacyHit] = []
