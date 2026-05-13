@@ -284,7 +284,7 @@ class MosaicTransformer(nn.Module):
         exodus_archive: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Returns *logits* only — sampling performed by StaffDecoder."""
-        _B, T = input_ids.shape
+        _B, T = input_ids.shape  # noqa: N806, RUF059
         x = self.tok_embeddings(input_ids)
         cos, sin = self.rope(T, device=input_ids.device)
 
@@ -294,8 +294,7 @@ class MosaicTransformer(nn.Module):
             x = layer(x, cos, sin, *exodus_inputs)
 
         x = self.output_norm(x)
-        logits = self.lm_head(x)
-        return logits
+        return self.lm_head(x)
 
     @torch.no_grad()
     def generate_until_stable(
