@@ -62,7 +62,7 @@ class TierBuffer:
         self.capacity = capacity
         self.tier = tier
         self._buffer: OrderedDict[str, MemoryEntry] = OrderedDict()
-        self._lru: deque[str] = deque(maxlen=capacity)
+        self._lru: deque[str] = deque()
 
     def add(self, entry: MemoryEntry) -> None:
         self._buffer[entry.id] = entry
@@ -85,10 +85,14 @@ class TierBuffer:
         self._lru.clear()
 
     def _enforce_capacity(self) -> None:
-        while len(self._buffer) > self.capacity:
-            # Evict oldest/lowest-priority
+    while len(self._buffer) > self.capacity:
+        # Evict least-recently-used entry that is still in the buffer
+        while self._lru:
             oldest = self._lru.popleft()
-            self._buffer.pop(oldest, None)
+            if oldest in self._buffer:
+                self._buffer.pop(oldest, None)
+                break
+            # If oldest was already removed (stale), continue to next
 
     def token_tensor(self) -> torch.Tensor:
         """Return concatenated tokens as a 1-D LongTensor."""
