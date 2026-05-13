@@ -354,7 +354,7 @@ class ToolRegistry:
         try:
             tool = self.get(name)
         except KeyError:
-            raise ValueError(f"Unknown tool: {name}")
+            raise ValueError(f"Unknown tool: {name}") from None
 
         # Validate arguments against spec
         for arg, spec in tool.parameters.items():
