@@ -179,9 +179,9 @@ class GQAAttention(nn.Module):
                 v = torch.cat([v, vr], dim=1)
 
                 # ── Causal mask extended for memory + registers ─────────────
-                Mtot = k.size(1) - T  # extra tokens prepended to K
-                causal_ext = torch.zeros(T, Mtot, device=x.device, dtype=torch.bool)
-                attn_mask = torch.cat([causal_ext, attn_mask], dim=1)  # [T, Mtot+T]
+                m_tot = k.size(1) - T  # extra tokens prepended to K
+                causal_ext = torch.zeros(T, m_tot, device=x.device, dtype=torch.bool)
+                attn_mask = torch.cat([causal_ext, attn_mask], dim=1)  # [T, m_tot+T]
                 # lower-triangular for the (M+T) side
                 attn_mask = torch.triu(torch.ones(T + Mtot, T + Mtot, device=x.device), diagonal=1).bool()
                 # but queries (real tokens) must NOT see *future* real tokens; they CAN see all memory
@@ -246,8 +246,7 @@ class MosaicTransformerBlock(nn.Module):
         r = x
         x = self.mlp_norm(x)
         x = self.mlp(x)
-        x = r + x
-        return x
+        return r + x
 
 
 class MosaicTransformer(nn.Module):
@@ -285,7 +284,7 @@ class MosaicTransformer(nn.Module):
         exodus_archive: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Returns *logits* only — sampling performed by StaffDecoder."""
-        B, T = input_ids.shape
+        _B, T = input_ids.shape
         x = self.tok_embeddings(input_ids)
         cos, sin = self.rope(T, device=input_ids.device)
 
