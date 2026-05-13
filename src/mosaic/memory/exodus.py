@@ -175,7 +175,7 @@ class ExodusMemoryStore:
         cur.execute(
             "INSERT OR REPLACE INTO memory_entries VALUES (?,?,?,?,?,?,?,?)",
             (
-                entry.id,
+                json.dumps(entry.id),
                 entry.tier.value,
                 str(entry.tokens),  # simple repr; could use json.dumps
                 entry.text,
