@@ -24,6 +24,17 @@ import structlog
 
 logger = structlog.get_logger()
 
+class SecurityError(Exception):
+    """Raised when a tool/command is blocked by safe-mode validation."""
+    pass
+
+
+class ValidationError(Exception):
+    """Raised when command arguments or environment fail validation."""
+    pass
+
+
+
 # Safe networks
 LOCAL_NETWORKS = (
     ipaddress.IPv4Network("10.0.0.0/8"),
@@ -221,4 +232,5 @@ class SafeToolRunner:
             )
 
 
-__all__ = ["SafeToolRunner", "ToolResult", "validate_target"]
+__all__ = ["SafeToolRunner", "ToolResult", "validate_target", "SecurityError", "ValidationError"]
+
