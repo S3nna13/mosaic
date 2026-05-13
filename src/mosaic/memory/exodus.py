@@ -364,8 +364,8 @@ class ExodusMemoryStore:
                     if cand in self.scratch._buffer:
                         oldest_id = cand
                         break
-                            # stale ID, discard
-                            self.scratch._lru.popleft()
+                    # stale ID, discard
+                    self.scratch._lru.popleft()
                 if oldest_id is None:
                     break
                 self.consolidate_upwards(oldest_id, Tier.EPISODE)
