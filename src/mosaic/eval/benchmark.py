@@ -135,7 +135,6 @@ class BenchmarkHarness:
             "macro_avg": round(macro_avg, 4),
             "scenario_scores": [r.to_dict() for r in self.results],
         }
-        return summary
 
     def _exec_code_score(self, generated: str, expected: str) -> float:
         """Runs generated code in subprocess and compares stdout to expected."""
