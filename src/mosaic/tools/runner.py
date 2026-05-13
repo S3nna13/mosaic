@@ -260,22 +260,17 @@ class SafeToolRunner:
                 duration=result.duration_sec,
             )
             return result
-        except TimeoutError:
+        except asyncio.TimeoutError:
             completed = datetime.now(UTC)
             logger.warning(
                 "tool_timeout", tool=tool_name, timeout=timeout or self.default_timeout
             )
-            return ToolResult(
-                tool=tool_name,
-                command=cmd_str,
-                exit_code=-1,
-                stdout="",
-                stderr="Execution timed out",
-                duration_sec=(completed - started).total_seconds(),
-                started_at=started,
-                completed_at=completed,
-                metadata={"error": "timeout"},
-            )
+            # Kill process to ensure cleanup
+            try:
+                proc.kill()
+            except Exception:
+                pass
+            raise SecurityError("command timed out")
         except Exception as e:
             completed = datetime.now(UTC)
             logger.error("tool_error", tool=tool_name, error=str(e))
