@@ -83,7 +83,7 @@ class PrivacyFilter:
         """
         findings: list[dict[str, str]] = []
         sanitised = text
-        offset = 0  # track replacements so indices stay correct
+        _offset = 0  # track replacements so indices stay correct
 
         # Process in order of appearance across all rules
         matches: list[tuple[int, int, str, str]] = []
@@ -123,7 +123,4 @@ class PrivacyFilter:
 
     def contains_secret_blockers(self, text: str) -> bool:
         """Quick pre-check: does text contain any BLOCK-action secret?"""
-        for rule in self._compiled_rules:
-            if rule.action == PrivacyAction.BLOCK and rule.pattern.search(text):
-                return True
-        return False
+        return any(rule.action == PrivacyAction.BLOCK and rule.pattern.search(text) for rule in self._compiled_rules)
