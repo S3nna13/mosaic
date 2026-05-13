@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  mosaic:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MOSAIC_ADAPTER=openai
+      - MOSAIC_OPENAI_API_KEY=${MOSAIC_OPENAI_API_KEY}
+      - MOSAIC_ANTHROPIC_API_KEY=${MOSAIC_ANTHROPIC_API_KEY}
+      - MOSAIC_GUARD_ENABLED=true
+      - MOSAIC_AUDIT_ENABLED=true
+    volumes:
+      # Persist audit logs and optional vector store data
+      - ./data/audit:/app/data/audit
+      - ./data/vector:/app/data/vector
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

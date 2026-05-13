@@ -1,0 +1,18 @@
+"""Multi-modal vision + text capabilities.
+
+Exposes:
+  - VisionEncoder abstraction + CLIPVisionEncoder implementation
+  - ImageInput dataclass for local/remote/image data
+  - MultiModalMessage for text+image prompts
+  - MultiModalAdapter Mixin to extend any BaseAdapter with vision support
+"""
+from __future__ import annotations
+
+from .vision import VisionEncoder, CLIPVisionEncoder, ImageInput, MultiModalMessage
+
+__all__ = [
+    "VisionEncoder",
+    "CLIPVisionEncoder", 
+    "ImageInput",
+    "MultiModalMessage",
+]

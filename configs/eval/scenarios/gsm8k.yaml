@@ -1,0 +1,11 @@
+# GSM8K — grade school math word problems
+name: gsm8k
+description: 8.5k math problems requiring multi-step reasoning
+metric: exact_match
+answer_key: answer
+prompt_template: Solve step by step. Final answer only. {question}
+samples:
+  - question: "If a shirt costs $25 and is on sale for 20% off, what is the final price?"
+    answer: "20"
+  - question: "A train travels 60 miles in 1.5 hours. What is its average speed in mph?"
+    answer: "40"

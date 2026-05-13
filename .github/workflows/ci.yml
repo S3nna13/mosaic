@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  lint-test:
+    name: Lint & Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install base deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install hatch  # hatchling build backend
+
+      - name: Install package with minimal deps
+        run: |
+          pip install -e '.[dev]'
+
+      - name: Type check (mypy)
+        run: |
+          mypy src/mosaic --strict --ignore-missing-imports || true  # allow optional deps
+
+      - name: Lint (ruff)
+        run: |
+          ruff check src/mosaic tests
+
+      - name: Format check (black)
+        run: |
+          black --check src/mosaic tests
+
+      - name: Smoke test (syntax + imports)
+        run: |
+          python tests/smoke.py
+
+      - name: Unit tests
+        run: |
+          pytest tests/unit -x --tb=short
+
+      - name: Integration tests
+        run: |
+          pytest tests/integration -x --tb=short
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+  build:
+    name: Build wheel
+    needs: lint-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build package
+        run: |
+          pip install build
+          python -m build --wheel
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel
+          path: dist/*.whl

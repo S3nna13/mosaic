@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mosaic
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/rate-limit: "1000"
+spec:
+  tls:
+    - hosts:
+        - mosaic.example.com
+      secretName: mosaic-tls
+  rules:
+    - host: mosaic.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mosaic
+                port:
+                  number: 80

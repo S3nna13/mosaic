@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mosaic-config
+data:
+  MOSAIC_ADAPTER: "openai"
+  MOSAIC_HOST: "0.0.0.0"
+  MOSAIC_PORT: "8000"
+  MOSAIC_GUARD_ENABLED: "true"
+  MOSAIC_AUDIT_ENABLED: "true"

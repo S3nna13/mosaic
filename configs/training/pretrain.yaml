@@ -1,0 +1,29 @@
+# MOSAIC pre-training configuration
+version: 1
+training:
+  model:
+    n_layers: 24
+    d_model: 2048
+    n_heads: 16
+    vocab_size: 128000
+    context_len: 8192
+  optimizer:
+    type: adamw
+    lr: 3.0e-4
+    weight_decay: 0.1
+  scheduler:
+    type: cosine
+    warmup_steps: 1_000
+    total_steps: 100_000
+  data:
+    train_shards: "/data/train/*.jsonl"
+    val_shards: "/data/val/*.jsonl"
+    batch_size: 4
+    gradient_accumulation: 8
+  checkpoint:
+    save_interval: 5000
+    save_dir: "./checkpoints"
+  hardware:
+    device: cuda
+    dtype: bfloat16
+    enable_fsdp: false

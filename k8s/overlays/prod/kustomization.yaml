@@ -1,0 +1,12 @@
+resources:
+  - ../../base
+
+namespace: production
+
+replicas:
+  - name: mosaic
+    count: 3
+
+images:
+  - name: mosaic
+    newTag: v1.0.0

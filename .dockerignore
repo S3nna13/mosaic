@@ -1,0 +1,23 @@
+# .dockerignore — keep image lean by excluding development/test assets
+.git
+.gitignore
+.github
+__pycache__
+*.pyc
+.pytest_cache
+.coverage
+htmlcov
+*.egg-info
+dist
+build
+.venv
+venv
+.env
+docs
+tests
+Makefile
+README.md
+CHANGELOG.md
+.mypy_cache
+.ruff_cache
+*.log

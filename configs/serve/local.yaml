@@ -1,0 +1,19 @@
+# Local development server config
+version: 1
+model:
+  provider: local
+  path: ./checkpoints/cerberus-1.6b.pt
+  device: cuda
+server:
+  host: 127.0.0.1
+  port: 8000
+  workers: 1
+  cors_origins:
+    - http://localhost:5173
+    - http://localhost:3000
+security:
+  rate_limit_max: 100
+  rate_limit_window: 60
+logging:
+  level: INFO
+  json: true

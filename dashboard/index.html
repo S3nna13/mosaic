@@ -1,0 +1,127 @@
+<!--
+  MOSAIC Dashboard — single-page HTML app (vanilla JS + Chart.js)
+  Served statically via FastAPI's StaticFiles or any web server.
+  Endpoints consumed: /metrics, /dashboard, /status
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MOSAIC Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 2rem; background: #0d1117; color: #c9d1d9; }
+        h1 { font-weight: 300; border-bottom: 1px solid #30363d; padding-bottom: .5rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.25rem; }
+        .card h2 { margin-top: 0; font-size: 1.1rem; color: #58a6ff; }
+        table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+        th, td { text-align: left; padding: .4rem; border-bottom: 1px solid #21262d; }
+        th { color: #8b949e; }
+        .ok { color: #3fb950; }
+        .bad { color: #f85149; }
+        #refresh { float: right; padding: .4rem .8rem; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 4px; cursor: pointer; }
+        #refresh:hover { background: #30363d; }
+    </style>
+</head>
+<body>
+<h1>MOSAIC <small style="font-size:.6em; color:#8b949e;">unified LLM framework</small></h1>
+<button id="refresh">Refresh now</button>
+
+<div class="grid">
+    <div class="card">
+        <h2>Service status</h2>
+        <table id="status-table">
+            <tr><th>Key</th><th>Value</th></tr>
+            <tr><td>API version</td><td id="api-version">…</td></tr>
+            <tr><td>Decoder loaded</td><td id="decoder-loaded">…</td></tr>
+            <tr><td>Uptime</td><td id="uptime">…</td></tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Request metrics</h2>
+        <table id="metrics-table">
+            <tr><th>Metric</th><th>Value</th></tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Guardrails</h2>
+        <pre id="guardrails-json" style="overflow:auto; max-height:200px; font-size:.8rem; background:#0d1117; padding:.5rem;"></pre>
+    </div>
+
+    <div class="card">
+        <h2>Memory tiers</h2>
+        <table id="memory-table">
+            <tr><th>Tier</th><th>Entries</th></tr>
+        </table>
+    </div>
+
+    <div class="card" style="grid-column: span 2;">
+        <h2>Recent audit (ArkLedger)</h2>
+        <table id="audit-table">
+            <tr><th>Time</th><th>Action</th><th>Actor</th><th>Details</th></tr>
+        </table>
+    </div>
+</div>
+
+<script>
+const base = location.origin;
+
+async function refreshAll() {
+    // Parallel fetch
+    const [statusR, metricsR, dashboardR] = await Promise.all([
+        fetch('/status'), fetch('/metrics'), fetch('/dashboard')
+    ]);
+    const status = await statusR.json();
+    const metrics = await metricsR.json();
+    const dashboard = await dashboardR.json();
+
+    // Populate status
+    document.getElementById('api-version').textContent = status.version;
+    document.getElementById('decoder-loaded').textContent = status.decoder_loaded ? 'Yes' : 'No';
+    document.getElementById('uptime').textContent = status.uptime_seconds.toFixed(1) + ' s';
+
+    // Metrics table
+    const mtable = document.getElementById('metrics-table');
+    mtable.innerHTML = '<tr><th>Metric</th><th>Value</th></tr>';
+    for (const [k, v] of Object.entries(metrics)) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${k}</td><td>${Number(v).toLocaleString()}</td>`;
+        mtable.appendChild(tr);
+    }
+
+    // Memory
+    const mem = dashboard.memory || {};
+    const mtable2 = document.getElementById('memory-table');
+    mtable2.innerHTML = '<tr><th>Tier</th><th>Count</th></tr>';
+    for (const [tier, count] of Object.entries(mem)) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${tier}</td><td>${count}</td>`;
+        mtable2.appendChild(tr);
+    }
+
+    // Guardrails
+    document.getElementById('guardrails-json').textContent = JSON.stringify(dashboard.guardrails || {}, null, 2);
+
+    // Audit
+    const atable = document.getElementById('audit-table');
+    atable.innerHTML = '<tr><th>Time</th><th>Action</th><th>Actor</th><th>Details</th></tr>';
+    (dashboard.audit_recent || []).forEach(entry => {
+        const tr = document.createElement('tr');
+        const when = new Date(entry.timestamp * 1000).toLocaleTimeString();
+        const details = JSON.stringify(entry.details || {});
+        tr.innerHTML = `<td>${when}</td><td>${entry.action}</td><td>${entry.actor}</td><td style="font-size:.8rem">${details}</td>`;
+        atable.appendChild(tr);
+    });
+}
+
+document.getElementById('refresh').addEventListener('click', refreshAll);
+refreshAll();  // initial load
+
+// auto-refresh every 5s
+setInterval(refreshAll, 5000);
+</script>
+</body>
+</html>
