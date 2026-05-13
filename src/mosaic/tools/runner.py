@@ -24,15 +24,17 @@ import structlog
 
 logger = structlog.get_logger()
 
+
 class SecurityError(Exception):
     """Raised when a tool/command is blocked by safe-mode validation."""
+
     pass
 
 
 class ValidationError(Exception):
     """Raised when command arguments or environment fail validation."""
-    pass
 
+    pass
 
 
 # Safe networks
@@ -160,7 +162,9 @@ class SafeToolRunner:
             except ValueError:
                 first_token = cmd_str.split()[0] if cmd_str.split() else ""
             if first_token and first_token not in self.allowed_tools:
-                raise SecurityError(f"tool '{first_token}' disallowed — not in allowed_tools set")
+                raise SecurityError(
+                    f"tool '{first_token}' disallowed — not in allowed_tools set"
+                )
 
         # Safe-mode dangerous pattern checks
         if self.safe_mode:
@@ -180,7 +184,9 @@ class SafeToolRunner:
             lowered = cmd_str.lower()
             for pattern in dangerous:
                 if pattern in lowered:
-                    raise SecurityError(f"command contains disallowed pattern: '{pattern}'")
+                    raise SecurityError(
+                        f"command contains disallowed pattern: '{pattern}'"
+                    )
         return cmd_str
 
     def execute(self, command: list[str], **kwargs) -> ToolResult:
@@ -277,5 +283,10 @@ class SafeToolRunner:
             )
 
 
-__all__ = ["SafeToolRunner", "ToolResult", "validate_target", "SecurityError", "ValidationError"]
-
+__all__ = [
+    "SafeToolRunner",
+    "ToolResult",
+    "validate_target",
+    "SecurityError",
+    "ValidationError",
+]
