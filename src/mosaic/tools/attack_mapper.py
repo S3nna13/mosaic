@@ -113,6 +113,9 @@ class MITREMapper:
         for tid, keywords in self._keyword_map.items():
             if any(kw in text for kw in keywords):
                 matched.append(self._techniques[tid])
+        if not matched:
+            # Fallback for unknown findings
+            matched.append(Technique("T0000", "Unknown Technique", "Unknown"))
         return matched
 
     def map_findings_batch(
