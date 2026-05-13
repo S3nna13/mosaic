@@ -4,7 +4,7 @@ FROM python:3.12-slim AS builder
 WORKDIR /src
 COPY . .
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential gcc git && rm -rf /var/lib/apt/lists/*
-RUN pip install --upgrade pip hatch
+RUN pip install --upgrade pip hatchling
 RUN python -m build --wheel --out-dir /dist
 # Pre-install deps into a requirements dir for final image (optional optim)
 
