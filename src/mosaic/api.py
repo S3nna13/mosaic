@@ -4,10 +4,12 @@ from __future__ import annotations
 import time
 import uuid
 from datetime import UTC, datetime
+from pathlib import Path
 
 import structlog
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from mosaic.adapters.base import Message
@@ -140,7 +142,7 @@ async def chat_endpoint(req: ChatRequest):
         )
     except PermissionError as e:
         _metrics["guardrail_blocks"] += 1
-        raise HTTPException(403, str(e)) from None from None
+        raise HTTPException(403, str(e)) from None
     except Exception as e:
         _metrics["errors_total"] += 1
         logger.error("decode_error", error=str(e))
@@ -192,8 +194,6 @@ async def status():
 @app.get("/metrics")
 async def metrics_endpoint():
     """Prometheus-style metrics exposition."""
-from pathlib import Path
-from fastapi.staticfiles import StaticFiles
     return {
         "mosaic_requests_total": _metrics["requests_total"],
         "mosaic_guardrail_blocks_total": _metrics["guardrail_blocks"],
@@ -248,8 +248,6 @@ async def startup_event():
         ]
     )
     logger.info("mosaic_api_startup", version="0.3.0")
-
-
 
 
 
