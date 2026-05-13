@@ -348,8 +348,7 @@ class MosaicTransformer(nn.Module):
         for layer in self.layers:
             x = layer(x, cos, sin, *exodus_inputs)
 
-        x = self.output_norm(x)
-        return x
+        return self.output_norm(x)
 
     @torch.no_grad()
     def generate_until_stable(
