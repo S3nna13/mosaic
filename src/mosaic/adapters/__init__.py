@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
 
 from .anthropic_adapter import AnthropicAdapter
 from .base import BaseAdapter, CircuitBreaker, Message, ModelResponse
