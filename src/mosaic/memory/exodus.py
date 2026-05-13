@@ -112,6 +112,7 @@ class ExodusMemoryStore:
         scratch_capacity: int = 512,
         episode_capacity: int = 4096,
         archive_capacity: int = 8192,
+        enable_persistence: bool = False,
         persist_path: str | None = None,
     ):
         if hasattr(self, "_initialized") and self._initialized:
