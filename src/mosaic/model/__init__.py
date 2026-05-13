@@ -14,13 +14,16 @@ except ImportError as e:
 try:
     from .model import MosaicForCausalLM  # type: ignore
     from .transformer import MosaicTransformer  # type: ignore
+    from .verifier import VerifierHead  # type: ignore
 except ImportError:
     MosaicTransformer = None  # type: ignore
     MosaicForCausalLM = None  # type: ignore
+    VerifierHead = None  # type: ignore
 
 
 __all__ = [
     "MosaicConfig",
     "MosaicForCausalLM",
     "MosaicTransformer",
+    "VerifierHead",
 ]
