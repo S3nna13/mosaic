@@ -20,7 +20,7 @@ import torch
 import torch.nn as nn
 
 
-class InferenceMode(str, Enum):
+class InferenceMode(str, Enum):  # noqa: UP042
     FAST        = "fast"
     DELIBERATE  = "deliberate"
     SEARCH      = "search"

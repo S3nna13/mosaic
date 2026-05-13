@@ -99,7 +99,7 @@ class StaffDecoder:
 
     async def decode(self, req: DecodeRequest, session_id: str | None = None) -> DecodeResponse:
         start = time.time()
-        sid = session_id or self.ledger.start_session()
+        _sid = session_id or self.ledger.start_session()
         last_msg = req.messages[-1]
         prompt_text = last_msg.content
 

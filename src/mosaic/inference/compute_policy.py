@@ -70,4 +70,4 @@ class ComputePolicy:
         return InferenceMode.FAST
 
 
-__all__ = ("ComputePolicy"]
+__all__ = ("ComputePolicy",)
