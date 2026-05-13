@@ -52,8 +52,13 @@ class CovenantAlignment:
         safety_tier = SafetyTier.SAFE
 
         hard_violations = [
-            v for v in violations
-            if any(c.hard_gate and c.violation_response == "refuse" for c in self.constraints if c.id in v)
+            v
+            for v in violations
+            if any(
+                c.hard_gate and c.violation_response == "refuse"
+                for c in self.constraints
+                if c.id in v
+            )
         ]
 
         if not all_passed:

@@ -11,8 +11,20 @@ if TYPE_CHECKING:
 PRINCIPLES = [
     (
         "Helpful and Harmless",
-        ["bomb", "explosive", "weapon", "kill", "murder", "rape",
-         "assault", "abuse", "terrorist", "trafficking","harmful","dangerous"],
+        [
+            "bomb",
+            "explosive",
+            "weapon",
+            "kill",
+            "murder",
+            "rape",
+            "assault",
+            "abuse",
+            "terrorist",
+            "trafficking",
+            "harmful",
+            "dangerous",
+        ],
     ),
     ("Truthful", ["hallucinated", "fabricated", "made up", "false claim"]),
     ("Fair", ["discriminat", "racist", "sexist", "bigot"]),

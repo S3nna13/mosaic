@@ -39,9 +39,9 @@ class Tier(str, Enum):  # noqa: UP042
 class MemoryEntry:
     id: str
     tier: Tier
-    tokens: list[int]          # token IDs (for model ingestion)
-    text: str                  # human-readable representation
-    priority: float            # 0-1  (higher → keep longer)
+    tokens: list[int]  # token IDs (for model ingestion)
+    text: str  # human-readable representation
+    priority: float  # 0-1  (higher → keep longer)
     created_at: float = field(default_factory=time.time)
     expires_at: float | None = None
     metadata: dict[str, object] = field(default_factory=dict)
@@ -52,6 +52,7 @@ class MemoryEntry:
 
 class TierBuffer:
     """Per-tier FIFO+priority buffer with capacity limit."""
+
     def __init__(self, capacity: int, tier: Tier):
         self.capacity = capacity
         self.tier = tier
@@ -96,6 +97,7 @@ class TierBuffer:
 
 class ExodusMemoryStore:
     """Singleton managing all three memory tiers with priority consolidation."""
+
     # FIXME: make per-instance (not singleton) when multi-tenant
 
     _instance: ExodusMemoryStore | None = None
@@ -145,7 +147,9 @@ class ExodusMemoryStore:
         if not self._db:
             return
         cur = self._db.cursor()
-        for row in cur.execute("SELECT id, tier, tokens, text, priority, created_at, expires_at, metadata FROM memory_entries"):
+        for row in cur.execute(
+            "SELECT id, tier, tokens, text, priority, created_at, expires_at, metadata FROM memory_entries"
+        ):
             eid, tier_s, tokens_s, text, prio, created, expires, _meta = row
             tier = Tier(tier_s)
             entry = MemoryEntry(
@@ -170,7 +174,7 @@ class ExodusMemoryStore:
             (
                 entry.id,
                 entry.tier.value,
-                str(entry.tokens),   # simple repr; could use json.dumps
+                str(entry.tokens),  # simple repr; could use json.dumps
                 entry.text,
                 entry.priority,
                 entry.created_at,
@@ -305,6 +309,7 @@ class ExodusMemoryStore:
 
 class SinaiRegisters(nn.Module):
     """Learnable register vectors shared across all conversations."""
+
     def __init__(self, dim: int, count: int = 16):
         super().__init__()
         self.register = nn.Parameter(torch.randn(count, dim) * 0.02)

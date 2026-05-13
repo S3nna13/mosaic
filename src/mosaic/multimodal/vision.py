@@ -3,6 +3,7 @@
 Future: integrate with OpenAI GPT-4o, Claude 3.5 Sonnet vision, or local SigLIP.
 This module provides the contract for image→embedding and image+text→response.
 """
+
 from __future__ import annotations
 
 import io
@@ -15,6 +16,7 @@ from PIL import Image
 try:
     import torch  # noqa: F401
     import torchvision.transforms as t  # noqa: F401
+
     HAVE_TORCH = True
 except ImportError:
     HAVE_TORCH = False
@@ -23,6 +25,7 @@ except ImportError:
 @dataclass
 class ImageInput:
     """Encapsulates an image reference (URL, file path, or base64 data)."""
+
     source: str  # url or filesystem path
     mime_type: str = "image/jpeg"
     data: bytes | None = None  # raw bytes if already loaded
@@ -35,6 +38,7 @@ class ImageInput:
 
 class VisionEncoder(ABC):
     """Abstract encoder — maps image → embedding vector."""
+
     @abstractmethod
     def encode(self, image: Image.Image) -> np.ndarray:
         pass
@@ -42,10 +46,14 @@ class VisionEncoder(ABC):
 
 class CLIPVisionEncoder(VisionEncoder):
     """CLIP ViT-B/16 visual encoder (uses open_clip if available)."""
+
     def __init__(self, model_name: str = "ViT-B-16"):
         try:
             import open_clip
-            self.model, _, self.preprocess = open_clip.create_model_and_transforms(model_name, pretrained="openai")
+
+            self.model, _, self.preprocess = open_clip.create_model_and_transforms(
+                model_name, pretrained="openai"
+            )
             self.model.eval()
         except ImportError:
             # Fallback: random projection (for testing)
@@ -62,6 +70,7 @@ class CLIPVisionEncoder(VisionEncoder):
 
 class MultiModalMessage:
     """Message that can carry both text and images."""
+
     def __init__(self, role: str, content: str, images: list[ImageInput] | None = None):
         self.role = role
         self.content = content
@@ -71,10 +80,18 @@ class MultiModalMessage:
         """Convert to OpenAI vision message format."""
         parts = [{"type": "text", "text": self.content}]
         for img in self.images:
-            parts.append({
-                "type": "image_url",
-                "image_url": {"url": f"file://{img.source}" if img.data is None else "data:image/jpeg;base64,..."}
-            })
+            parts.append(
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": (
+                            f"file://{img.source}"
+                            if img.data is None
+                            else "data:image/jpeg;base64,..."
+                        )
+                    },
+                }
+            )
         return {"role": self.role, "content": parts}
 
 

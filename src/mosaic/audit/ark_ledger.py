@@ -36,32 +36,32 @@ logger = structlog.get_logger()
 
 class ActionType(str, Enum):  # noqa: UP042
     # Core lifecycle
-    SESSION_START   = "session_start"
-    SESSION_END     = "session_end"
+    SESSION_START = "session_start"
+    SESSION_END = "session_end"
     # Input handling
     PROMPT_RECEIVED = "prompt_received"
-    INPUT_SCANNED   = "input_scanned"
+    INPUT_SCANNED = "input_scanned"
     # Guardrail pipeline
-    GUARDRAIL_EVAL  = "guardrail_eval"
+    GUARDRAIL_EVAL = "guardrail_eval"
     GUARDRAIL_BLOCK = "guardrail_block"
     # Inference & alignment
     MODEL_INFERENCE = "model_inference"
     ALIGNMENT_CHECK = "alignment_check"
     ALIGNMENT_OVERRIDE = "alignment_override"
     # Memory
-    MEMORY_WRITE    = "memory_write"
+    MEMORY_WRITE = "memory_write"
     MEMORY_CONSOLIDATE = "memory_consolidate"
-    MEMORY_PRUNE    = "memory_prune"
+    MEMORY_PRUNE = "memory_prune"
     # Tool use
-    TOOL_CALL      = "tool_call"
-    TOOL_RESULT    = "tool_result"
+    TOOL_CALL = "tool_call"
+    TOOL_RESULT = "tool_result"
     # Output
     OUTPUT_SCANNED = "output_scanned"
-    RESPONSE_SENT  = "response_sent"
+    RESPONSE_SENT = "response_sent"
     # System
-    RATE_LIMIT     = "rate_limit"
-    ERROR          = "error"
-    ADMIN_ACTION   = "admin_action"
+    RATE_LIMIT = "rate_limit"
+    ERROR = "error"
+    ADMIN_ACTION = "admin_action"
 
 
 @dataclass
@@ -72,7 +72,7 @@ class ArkEntry:
     action: ActionType
     session_id: str
     actor: str = "system"
-    decision: str | None = None   # BLOCKED | PASSED | FLAGGED
+    decision: str | None = None  # BLOCKED | PASSED | FLAGGED
     details: dict[str, Any] = field(default_factory=dict)
     hash: str = field(init=False)
 
@@ -95,7 +95,9 @@ class ArkEntry:
             "dec": self.decision,
             "det": self.details,
         }
-        return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode(
+            "utf-8"
+        )
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
@@ -110,6 +112,7 @@ class ArkLedger:
     """Immutable append-only ledger — writes are atomic, verified, and optionally
     exported to a file for compliance/SIEM ingestion.
     """
+
     def __init__(self, log_path: Path | None = None):
         self._log_path = Path(log_path) if log_path else None
         self._chain_tip: ArkEntry | None = None
@@ -142,7 +145,7 @@ class ArkLedger:
         self._current_session = sid
         entry = ArkEntry(
             id=str(uuid.uuid4()),
-            previous_hash=self._chain_tip.hash if self._chain_tip else "0"*64,
+            previous_hash=self._chain_tip.hash if self._chain_tip else "0" * 64,
             timestamp=time.time(),
             action=ActionType.SESSION_START,
             session_id=sid,
@@ -180,7 +183,7 @@ class ArkLedger:
             self.start_session()
         entry = ArkEntry(
             id=str(uuid.uuid4()),
-            previous_hash=self._chain_tip.hash if self._chain_tip else "0"*64,
+            previous_hash=self._chain_tip.hash if self._chain_tip else "0" * 64,
             timestamp=time.time(),
             action=action,
             session_id=self._current_session,
@@ -198,7 +201,9 @@ class ArkLedger:
             with self._log_path.open("a") as f:
                 f.write(line)
         self._chain_tip = entry
-        logger.debug("audit_entry", id=entry.id, hash=entry.hash, action=entry.action.value)
+        logger.debug(
+            "audit_entry", id=entry.id, hash=entry.hash, action=entry.action.value
+        )
 
     def verify_chain(self) -> tuple[bool, str | None]:
         """Walk entire chain and verify hashes. Returns (ok, bad_entry_id_or_None)."""
@@ -217,7 +222,16 @@ class ArkLedger:
     def export_siem(self, dest: Path, format: str = "json") -> None:
         """Copy ledger into SIEM-friendly format."""
         if format == "json":
-            dest.write_text(json.dumps([json.loads(line) for line in self._log_path.read_text().splitlines() if line.strip()], indent=2))
+            dest.write_text(
+                json.dumps(
+                    [
+                        json.loads(line)
+                        for line in self._log_path.read_text().splitlines()
+                        if line.strip()
+                    ],
+                    indent=2,
+                )
+            )
         elif format == "syslog":
             lines = []
             for line in self._log_path.read_text().splitlines():

@@ -1,4 +1,5 @@
 """OpenAI adapter — OpenAI SDK (ChatCompletion) backend."""
+
 from __future__ import annotations
 
 import openai
@@ -10,9 +11,13 @@ from mosaic.adapters.base import BaseAdapter, Message, ModelResponse
 class OpenAIAdapter(BaseAdapter):
     name = "openai"
 
-    def __init__(self, api_key: str, model: str = "gpt-4o-mini", base_url: str | None = None):
+    def __init__(
+        self, api_key: str, model: str = "gpt-4o-mini", base_url: str | None = None
+    ):
         self.model = model
-        self.client = OpenAI(api_key=api_key, base_url=base_url or "https://api.openai.com/v1")
+        self.client = OpenAI(
+            api_key=api_key, base_url=base_url or "https://api.openai.com/v1"
+        )
         self._models_cache: list[str] | None = None
 
     def chat(self, messages: list[Message], **kwargs) -> ModelResponse:
@@ -21,10 +26,9 @@ class OpenAIAdapter(BaseAdapter):
             if m.images:
                 content_parts = [{"type": "text", "text": m.content}]
                 for img in m.images:
-                    content_parts.append({
-                        "type": "image_url",
-                        "image_url": {"url": img.source}
-                    })
+                    content_parts.append(
+                        {"type": "image_url", "image_url": {"url": img.source}}
+                    )
                 oa_messages.append({"role": m.role, "content": content_parts})
             else:
                 oa_messages.append({"role": m.role, "content": m.content})

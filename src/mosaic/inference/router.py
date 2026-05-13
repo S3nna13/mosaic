@@ -11,6 +11,7 @@ The router examines prompt embeddings (mean-pooled last-layer hidden states) and
 outputs a categorical mode. In production, this can be a fine-tuned classifier;
 here we implement a lightweight heuristic fallback + trainable MLP stub.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -21,27 +22,29 @@ import torch.nn as nn
 
 
 class InferenceMode(str, Enum):  # noqa: UP042
-    FAST        = "fast"
-    DELIBERATE  = "deliberate"
-    SEARCH      = "search"
-    AGENT       = "agent"
-    MEMORY      = "memory"
+    FAST = "fast"
+    DELIBERATE = "deliberate"
+    SEARCH = "search"
+    AGENT = "agent"
+    MEMORY = "memory"
 
 
 @dataclass
 class RouterConfig:
     """Configuration for RedSea Router."""
+
     mode: InferenceMode = InferenceMode.FAST
-    use_heuristic_fallback: bool = True   # if no MLP weights, use keyword rules
+    use_heuristic_fallback: bool = True  # if no MLP weights, use keyword rules
     # Feature thresholds for heuristic mode
-    math_threshold: float = 0.15   # token overlap with math operators
-    code_threshold: float = 0.10   # code symbol density
-    tool_threshold: float = 0.20   # mentions of "search", "lookup", etc.
+    math_threshold: float = 0.15  # token overlap with math operators
+    code_threshold: float = 0.10  # code symbol density
+    tool_threshold: float = 0.20  # mentions of "search", "lookup", etc.
     ambiguity_threshold: float = 0.25  # high entropy in token distribution
 
 
 class RedSeaRouter(nn.Module):
     """MLP-based mode classifier + heuristic fallback."""
+
     def __init__(self, dim: int, hidden: int = 64, n_modes: int = 5):
         super().__init__()
         self.dim = dim
@@ -64,7 +67,9 @@ class RedSeaRouter(nn.Module):
         logits = self.forward(x)  # [B, 5]
         probs = torch.softmax(logits, dim=-1)
         predicted_idx = torch.argmax(probs, dim=-1).item()
-        mode = InferenceMode(["fast", "deliberate", "search", "agent", "memory"][predicted_idx])
+        mode = InferenceMode(
+            ["fast", "deliberate", "search", "agent", "memory"][predicted_idx]
+        )
 
         if cfg.use_heuristic_fallback:
             # Simple keyword override for high-confidence cases

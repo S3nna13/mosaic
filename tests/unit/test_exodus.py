@@ -1,4 +1,5 @@
 """Exodus memory tests — tiered storage, retention, consolidation, similarity."""
+
 from __future__ import annotations
 
 import time
@@ -66,8 +67,8 @@ def test_episode_consolidation_to_archive():
 def test_similarity_query_returns_closest():
     store = ExodusMemoryStore(archive_capacity=100)
     ref = [1.0, 0.0]
-    vec_a = [1.0, 0.1]   # cosine ~0.995
-    vec_b = [0.0, 1.0]   # cosine ~0.0
+    vec_a = [1.0, 0.1]  # cosine ~0.995
+    vec_b = [0.0, 1.0]  # cosine ~0.0
     store.write("A", vec_a, tier=Tier.ARCHIVE)
     store.write("B", vec_b, tier=Tier.ARCHIVE)
 
@@ -78,6 +79,7 @@ def test_similarity_query_returns_closest():
 def test_persistence_roundtrip():
     import os
     import tempfile
+
     with tempfile.TemporaryDirectory() as td:
         db = os.path.join(td, "exodus.db")
         store = ExodusMemoryStore(persist_path=db, enable_persistence=True)
@@ -102,7 +104,7 @@ def test_priority_ordering_in_scratch():
     assert ids[0] == "high1"
     # Scratch queue should be sorted by priority desc
     for i in range(len(store._scratch_queue) - 1):
-        assert store._scratch_queue[i].priority >= store._scratch_queue[i+1].priority
+        assert store._scratch_queue[i].priority >= store._scratch_queue[i + 1].priority
 
 
 def test_memory_rotation_scratch_episode():

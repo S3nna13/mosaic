@@ -8,6 +8,7 @@ Checks:
   - version in pyproject.toml matches CHANGELOG
   - wheel can be built (dry-run if possible)
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -48,6 +49,7 @@ def smoke_test() -> bool:
 
 def syntax_check() -> bool:
     import ast
+
     ok = True
     for p in (ROOT / "src" / "mosaic").rglob("*.py"):
         try:
@@ -62,6 +64,7 @@ def syntax_check() -> bool:
 
 def version_consistency() -> bool:
     import tomllib
+
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text())
     version = pyproject["project"]["version"]
 
@@ -77,6 +80,7 @@ def version_consistency() -> bool:
 def wheel_build_dry() -> bool:
     # Just verify build metadata parses
     import tomllib
+
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text())
     if "build-system" not in pyproject:
         print("✗ pyproject.toml missing [build-system] table")

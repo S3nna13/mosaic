@@ -1,4 +1,5 @@
 """Core: configuration loading, Pydantic schemas."""
+
 from __future__ import annotations
 
 from .config import load_config, validate_config

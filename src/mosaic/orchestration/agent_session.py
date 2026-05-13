@@ -12,6 +12,7 @@ from mosaic.audit.ark_ledger import ArkLedger
 @dataclass
 class Step:
     """One step in an agent trajectory."""
+
     step_id: str
     prompt: str
     output: str
@@ -27,7 +28,13 @@ class AgentSession:
         self.ledger = ledger or ArkLedger()
         self._history: list[Step] = []
 
-    def add_step(self, prompt: str, output: str, tool_calls: list[dict] | None = None, tool_results: list[Any] | None = None) -> None:
+    def add_step(
+        self,
+        prompt: str,
+        output: str,
+        tool_calls: list[dict] | None = None,
+        tool_results: list[Any] | None = None,
+    ) -> None:
         step = Step(
             step_id=str(uuid.uuid4()),
             prompt=prompt,

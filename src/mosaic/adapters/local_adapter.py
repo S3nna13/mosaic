@@ -1,4 +1,5 @@
 """Local adapter — HuggingFace Transformers or local Mosaic weights."""
+
 from __future__ import annotations
 
 import torch
@@ -23,6 +24,7 @@ class LocalAdapter(BaseAdapter):
         if self.use_mosaic:
             # Dynamically import late to avoid circular imports
             from mosaic.model.transformer import build_transformer_from_config
+
             # Load weights if checkpoint file provided
             self.model = build_transformer_from_config(self._infer_config())
             if model_path:
@@ -38,12 +40,15 @@ class LocalAdapter(BaseAdapter):
     def _infer_config(self):
         # Minimal AigisConfig sufficient for build_transformer_from_config
         from mosaic.core.schema import AigisConfig
+
         return AigisConfig()
 
     @torch.no_grad()
     def chat(self, messages: list[Message], **kwargs) -> ModelResponse:
         prompt = self._build_prompt(messages)
-        inputs = self.tokenizer(prompt, return_tensors="pt", padding=True).to(self.device)
+        inputs = self.tokenizer(prompt, return_tensors="pt", padding=True).to(
+            self.device
+        )
 
         gen_kwargs = {
             "max_new_tokens": kwargs.get("max_tokens", 1024),

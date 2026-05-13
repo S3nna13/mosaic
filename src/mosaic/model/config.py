@@ -141,9 +141,7 @@ class MosaicConfig:
 
     def to_dict(self) -> dict:
         """Serialize to a plain dict (useful for JSON/YAML)."""
-        return {
-            k: v for k, v in self.__dict__.items() if not k.startswith("_")
-        }
+        return {k: v for k, v in self.__dict__.items() if not k.startswith("_")}
 
     @classmethod
     def from_dict(cls, data: dict) -> MosaicConfig:

@@ -16,7 +16,9 @@ class ModelConfig(BaseModel):
 
 
 class EvalAssertion(BaseModel):
-    type: Literal["exact", "contains", "regex", "llm_judge", "factual", "safe", "custom"] = "exact"
+    type: Literal[
+        "exact", "contains", "regex", "llm_judge", "factual", "safe", "custom"
+    ] = "exact"
     metric: str | None = None
     value: str | None = None
     threshold: float = 0.8
@@ -29,12 +31,25 @@ class EvalConfig(BaseModel):
 
 
 class GuardConfig(BaseModel):
-    rails: list[str] = Field(default_factory=lambda: [
-        "jailbreak", "injection", "toxicity", "pii", "secrets",
-        "context", "rag_poisoning", "structured_output", "constitutional",
-        "factual", "hallucination", "output", "rate_limit"
-    ])
+    rails: list[str] = Field(
+        default_factory=lambda: [
+            "jailbreak",
+            "injection",
+            "toxicity",
+            "pii",
+            "secrets",
+            "context",
+            "rag_poisoning",
+            "structured_output",
+            "constitutional",
+            "factual",
+            "hallucination",
+            "output",
+            "rate_limit",
+        ]
+    )
     enabled: bool = True
+
 
 class MemoryConfig(BaseModel):
     scratch_capacity: int = 512
@@ -55,7 +70,6 @@ class LimitsConfig(BaseModel):
     rate_limit_window_seconds: int = 60
 
 
-
 class TrainingConfig(BaseModel):
     epochs: int = 3
     batch_size: int = 8
@@ -67,16 +81,17 @@ class TrainingConfig(BaseModel):
     device: str = "cuda"
 
 
-
 try:
     from .config import MosaicConfig as _ModelArchConfig
 except ImportError:
+
     class _ModelArchConfig(BaseModel):
         pass
 
 
 class AigisConfig(BaseModel):
     """Top-level unified config schema."""
+
     version: str = "1"
     name: str | None = None
     description: str | None = None

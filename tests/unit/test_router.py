@@ -1,4 +1,5 @@
 """RedSea router — 5-mode classification via fast MLP."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock

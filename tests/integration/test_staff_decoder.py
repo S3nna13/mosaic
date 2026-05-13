@@ -1,4 +1,5 @@
 """StaffDecoder full-routing integration test — auto-escalation, memory, guardrails."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock
@@ -14,18 +15,20 @@ def decoder():
     # Mocks avoid needing real adapters or models
     mock_adapter = MagicMock()
     mock_adapter.name = "mock"
-    mock_adapter.chat = AsyncMock(return_value=ModelResponse(
-        content="This is a test response",
-        model="mock-model",
-        usage={"input_tokens": 10, "output_tokens": 5},
-        raw={},
-    ))
+    mock_adapter.chat = AsyncMock(
+        return_value=ModelResponse(
+            content="This is a test response",
+            model="mock-model",
+            usage={"input_tokens": 10, "output_tokens": 5},
+            raw={},
+        )
+    )
     mock_adapter.health = MagicMock(return_value=True)
     mock_adapter.list_models = MagicMock(return_value=["mock-model"])
 
     decoder = StaffDecoder(adapter=mock_adapter)
     decoder._memory = MagicMock()
-    decoder._memory.query_episode.return_value = [("ep1", [0.1]*64, 0.5)]
+    decoder._memory.query_episode.return_value = [("ep1", [0.1] * 64, 0.5)]
     decoder._memory.external_isolation_purge.return_value = []
     decoder._guardrail_pipeline = MagicMock()
     decoder._guardrail_pipeline.check_input = AsyncMock(return_value=[])
@@ -34,7 +37,12 @@ def decoder():
     decoder._router = MagicMock()
     decoder._router.route.return_value = "fast"  # default mode
     decoder._audit = MagicMock()
-    decoder._config = MagicMock(enable_audit=True, enable_guardrails=True, auto_escalate=True, escalation_threshold=0.75)
+    decoder._config = MagicMock(
+        enable_audit=True,
+        enable_guardrails=True,
+        auto_escalate=True,
+        escalation_threshold=0.75,
+    )
 
     return decoder
 

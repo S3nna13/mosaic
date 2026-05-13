@@ -27,7 +27,8 @@ class HallucinationDetector(Guardrail):
         ctx_lower = context.lower()
         out_lower = text.lower()
         unverified = [
-            word for word in out_lower.split()
+            word
+            for word in out_lower.split()
             if word not in ctx_lower and len(word) > 5
         ]
         hallucination_rate = len(unverified) / max(len(out_lower.split()), 1)
@@ -36,7 +37,11 @@ class HallucinationDetector(Guardrail):
             name=self.name,
             passed=passed,
             score=hallucination_rate,
-            reason=f"Unverified terms: {', '.join(unverified[:5])}..." if unverified else None,
+            reason=(
+                f"Unverified terms: {', '.join(unverified[:5])}..."
+                if unverified
+                else None
+            ),
             severity="critical" if not passed else "info",
         )
 

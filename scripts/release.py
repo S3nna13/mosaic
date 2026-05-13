@@ -10,6 +10,7 @@ Workflow:
 
 Requires: python >=3.12, twine (for PyPI), gh (for GitHub CLI release)
 """
+
 from __future__ import annotations
 
 import re
@@ -42,7 +43,9 @@ def bump_version(version: str, mode: str) -> str:
 
 def update_pyproject(old: str, new: str):
     text = PYPROJECT.read_text()
-    text = re.sub(r'version\s*=\s*["\']' + re.escape(old) + r'["\']', f'version = "{new}"', text)
+    text = re.sub(
+        r'version\s*=\s*["\']' + re.escape(old) + r'["\']', f'version = "{new}"', text
+    )
     PYPROJECT.write_text(text)
 
 
@@ -51,7 +54,7 @@ def update_changelog(old: str, new: str):
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     text = text.replace(
         "## [Unreleased] — Current",
-        f"## [{new}] — {today}\\n\\n### Changed\\n- version bump: {old} → {new}\\n\\n---\\n\\n## [Unreleased] — Current"
+        f"## [{new}] — {today}\\n\\n### Changed\\n- version bump: {old} → {new}\\n\\n---\\n\\n## [Unreleased] — Current",
     )
     CHANGELOG.write_text(text)
 
@@ -94,7 +97,9 @@ def main():
     print("\nNext steps:")
     print(f"  git push origin main --tags")
     print(f"  # Or create a GitHub release via:")
-    print(f"  gh release create v{new_version} {wheel} --notes-format=markdown --notes='See CHANGELOG.md'")
+    print(
+        f"  gh release create v{new_version} {wheel} --notes-format=markdown --notes='See CHANGELOG.md'"
+    )
     print(f"  # Or upload to PyPI:")
     print(f"  twine upload {wheel}")
 

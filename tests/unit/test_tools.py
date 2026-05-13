@@ -1,4 +1,5 @@
 """Tool harness tests — runner validation, registry, MITRE classification, audit."""
+
 from __future__ import annotations
 
 import pytest
@@ -60,7 +61,10 @@ def test_unknown_tool_raises():
 
 def test_mitre_mapper_classifies_injection_as_t1190():
     mapper = MITREMapper()
-    finding = {"reason": "Prompt contains system instruction override", "type": "injection"}
+    finding = {
+        "reason": "Prompt contains system instruction override",
+        "type": "injection",
+    }
     techniques = mapper.map_finding(finding)
     ids = [t.id for t in techniques]
     assert "T1190" in ids  # Exploit Public-Facing Application

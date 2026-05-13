@@ -1,4 +1,5 @@
 """Alignment: constitutional, covenant, safety gates."""
+
 from __future__ import annotations
 
 from .constitutional import ConstitutionalConstraint, ConstitutionalRegistry

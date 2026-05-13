@@ -12,17 +12,22 @@ from mosaic.eval.metrics import Metric, MetricResult
 class EvalContext:
     def __init__(self, config_path: str | Path, model: BaseAdapter | None = None):
         from mosaic.core.config import load_config
+
         self.config = load_config(config_path)
         self.model = model
 
     def get_prompts(self) -> list[str]:
-        return [p["template"] for p in (self.config.get("eval", {}).get("prompts", []) or [])]
+        return [
+            p["template"]
+            for p in (self.config.get("eval", {}).get("prompts", []) or [])
+        ]
 
     def get_tests(self) -> list[dict]:
         return self.config.get("eval", {}).get("tests", []) or []
 
     def get_metrics(self) -> list[Metric]:
         from mosaic.eval.metrics import Contains, ExactMatch
+
         metrics = []
         for a in self.config.get("eval", {}).get("assertions", []) or []:
             t = a.get("type")
@@ -37,6 +42,7 @@ class EvalContext:
 
 def _build_metric(assertion: dict, model: BaseAdapter | None = None) -> Metric:
     from mosaic.eval.metrics import Contains, ExactMatch, LLMJudge, RegexMatch
+
     t = assertion.get("type", "exact")
     if t == "exact":
         return ExactMatch()
@@ -46,11 +52,15 @@ def _build_metric(assertion: dict, model: BaseAdapter | None = None) -> Metric:
     if t == "regex":
         return RegexMatch(pattern=str(assertion.get("value", ".*")))
     if t in ("llm_judge", "factual"):
-        return LLMJudge(model_adapter=model, criteria=assertion.get("metric", "correctness"))
+        return LLMJudge(
+            model_adapter=model, criteria=assertion.get("metric", "correctness")
+        )
     return ExactMatch()
 
 
-async def run_eval(config: str | Path | dict, model_override: BaseAdapter | None = None):
+async def run_eval(
+    config: str | Path | dict, model_override: BaseAdapter | None = None
+):
 
     config_obj = load_config(str(config)) if isinstance(config, (str, Path)) else config
 
@@ -62,12 +72,14 @@ async def run_eval(config: str | Path | dict, model_override: BaseAdapter | None
         provider = mc.get("provider")
         if provider == "openai":
             from ..adapters.openai_adapter import OpenAIAdapter
+
             model = OpenAIAdapter(
                 model=mc.get("model", "gpt-4o-mini"),
                 api_key=mc.get("api_key"),
             )
         elif provider == "local":
             from ..adapters.local_adapter import LocalAdapter
+
             model = LocalAdapter(model_path=mc.get("path", "mosaic-ai/cerberus-1.6b"))
         else:
             raise ValueError(f"Unknown provider: {provider}")
@@ -86,6 +98,7 @@ async def run_eval(config: str | Path | dict, model_override: BaseAdapter | None
 
         # Run model
         from ..adapters.base import Message
+
         messages = [Message(role="user", content=prompt)]
         resp = await model.generate(messages)
         output = resp.content

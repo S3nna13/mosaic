@@ -12,6 +12,7 @@ Scenarios included:
 
 Metrics: accuracy, pass@k, BLEU/ROUGE, toxicity score, refusal rate.
 """
+
 from __future__ import annotations
 
 import statistics
@@ -62,6 +63,7 @@ class ScenarioResult:
 
 class BenchmarkHarness:
     """Runs a model through a collection of scenarios and aggregates results."""
+
     def __init__(self, adapter, scenarios_dir: str = "configs/eval/scenarios"):
         self.adapter = adapter
         self.scenarios_dir = Path(scenarios_dir)
@@ -71,6 +73,7 @@ class BenchmarkHarness:
     def load_scenario(self, path: Path) -> Scenario:
         """Load a scenario from a YAML/JSON file."""
         import yaml
+
         raw = yaml.safe_load(path.read_text())
         return Scenario(**raw)
 
@@ -84,7 +87,9 @@ class BenchmarkHarness:
             except Exception as e:
                 logger.warning("scenario_load_failed", path=str(p), error=str(e))
 
-    async def run_scenario(self, scenario: Scenario, limit: int | None = None) -> ScenarioResult:
+    async def run_scenario(
+        self, scenario: Scenario, limit: int | None = None
+    ) -> ScenarioResult:
         """Evaluate adapter on a single scenario."""
         samples = scenario.samples if limit is None else scenario.samples[:limit]
         all_scores = []
@@ -94,7 +99,11 @@ class BenchmarkHarness:
             prompt = scenario.format_prompt(sample)
             messages = [Message(role="user", content=prompt)]
             try:
-                resp = await self.adapter.chat(messages, max_tokens=scenario.max_tokens, temperature=scenario.temperature)
+                resp = await self.adapter.chat(
+                    messages,
+                    max_tokens=scenario.max_tokens,
+                    temperature=scenario.temperature,
+                )
                 generated = resp.content.strip()
                 expected = sample[scenario.answer_key]
             except Exception as e:
@@ -115,10 +124,19 @@ class BenchmarkHarness:
                 score = 0.0
 
             all_scores.append(score)
-            details.append({"prompt": prompt[:200], "generated": generated[:300], "expected": str(expected)[:300], "score": score})
+            details.append(
+                {
+                    "prompt": prompt[:200],
+                    "generated": generated[:300],
+                    "expected": str(expected)[:300],
+                    "score": score,
+                }
+            )
 
         avg_score = statistics.mean(all_scores) if all_scores else 0.0
-        return ScenarioResult(scenario.name, len(samples), scenario.metric, avg_score, details)
+        return ScenarioResult(
+            scenario.name, len(samples), scenario.metric, avg_score, details
+        )
 
     async def run_all(self, limit_per: int | None = None) -> dict[str, Any]:
         """Run every loaded scenario and return aggregated results."""
@@ -141,11 +159,14 @@ class BenchmarkHarness:
         import os
         import subprocess
         import tempfile
+
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write(generated)
             f.flush()
             try:
-                proc = subprocess.run(["python", f.name], capture_output=True, text=True, timeout=5)
+                proc = subprocess.run(
+                    ["python", f.name], capture_output=True, text=True, timeout=5
+                )
                 output = proc.stdout.strip()
                 score = 1.0 if output == expected.strip() else 0.0
             except Exception:

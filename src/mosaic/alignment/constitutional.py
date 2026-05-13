@@ -11,6 +11,7 @@ from .objectives import AlignmentObjective
 @dataclass
 class ConstitutionalConstraint:
     """A single constitutional rule with enforcement semantics."""
+
     id: str
     objective: AlignmentObjective
     description: str

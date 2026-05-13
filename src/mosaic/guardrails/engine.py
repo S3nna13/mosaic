@@ -7,10 +7,10 @@ from dataclasses import dataclass, field
 # Optional MITRE mapper — guardrails work without it
 try:
     from mosaic.tools.attack_mapper import MITREMapper
+
     _mitre = MITREMapper()
 except Exception:  # pragma: no cover
     _mitre = None
-
 
 
 @dataclass
@@ -38,21 +38,35 @@ class GuardrailPipeline:
         self._instances = [r() for r in rails]
 
     async def check_input(self, text: str) -> list[GuardrailResult]:
-        results = [await r.check(text) for r in self._instances if getattr(r, "is_input", False)]
+        results = [
+            await r.check(text)
+            for r in self._instances
+            if getattr(r, "is_input", False)
+        ]
         # Enrich with MITRE mapping
         if _mitre is not None:
             for r in results:
                 if not r.passed:
-                    techs = _mitre.map_finding({"reason": r.reason or "", "type": r.name})
+                    techs = _mitre.map_finding(
+                        {"reason": r.reason or "", "type": r.name}
+                    )
                     r.mitre_techniques = [t.id for t in techs]
         return results
 
-    async def check_output(self, text: str, context: str | None = None) -> list[GuardrailResult]:
-        results = [await r.check(text, context) for r in self._instances if getattr(r, "is_output", False)]
+    async def check_output(
+        self, text: str, context: str | None = None
+    ) -> list[GuardrailResult]:
+        results = [
+            await r.check(text, context)
+            for r in self._instances
+            if getattr(r, "is_output", False)
+        ]
         if _mitre is not None:
             for r in results:
                 if not r.passed:
-                    techs = _mitre.map_finding({"reason": r.reason or "", "type": r.name})
+                    techs = _mitre.map_finding(
+                        {"reason": r.reason or "", "type": r.name}
+                    )
                     r.mitre_techniques = [t.id for t in techs]
         return results
 
@@ -65,14 +79,17 @@ class GuardrailPipeline:
         from .pii import PIIDetector
         from .secrets import SecretsScanner
         from .toxicity import ToxicityGuardrail
-        return GuardrailPipeline([
-            JailbreakDetector,
-            PromptInjectionDetector,
-            ToxicityGuardrail,
-            PIIDetector,
-            SecretsScanner,
-            ContextWindowGuard,
-        ])
+
+        return GuardrailPipeline(
+            [
+                JailbreakDetector,
+                PromptInjectionDetector,
+                ToxicityGuardrail,
+                PIIDetector,
+                SecretsScanner,
+                ContextWindowGuard,
+            ]
+        )
 
     @staticmethod
     def default_output() -> GuardrailPipeline:
@@ -80,13 +97,16 @@ class GuardrailPipeline:
         from .hallucination import HallucinationDetector
         from .output import OutputValidator, StructuredOutputValidator
         from .rate_limit import DoSProtectionGuard
-        return GuardrailPipeline([
-            HallucinationDetector,
-            FactualConsistency,
-            OutputValidator,
-            StructuredOutputValidator,
-            DoSProtectionGuard,
-        ])
+
+        return GuardrailPipeline(
+            [
+                HallucinationDetector,
+                FactualConsistency,
+                OutputValidator,
+                StructuredOutputValidator,
+                DoSProtectionGuard,
+            ]
+        )
 
 
 __all__ = [

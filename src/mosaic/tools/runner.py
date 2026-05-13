@@ -8,6 +8,7 @@ Adapted from CERBERUS tool_runner.py patterns. Features:
   • Structured output parsing (JSON, YAML, XML)
   • All executions audited via ArkLedger
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -34,8 +35,14 @@ SAFE_HOSTNAMES = frozenset({"localhost", "127.0.0.1", "::1"})
 
 # Secret env var patterns (blocked from child processes)
 _SECRET_PATTERNS = (
-    "*SECRET*", "*_KEY", "*_TOKEN", "*PASSWORD*",
-    "AWS_*", "GITHUB_TOKEN", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
+    "*SECRET*",
+    "*_KEY",
+    "*_TOKEN",
+    "*PASSWORD*",
+    "AWS_*",
+    "GITHUB_TOKEN",
+    "OPENAI_API_KEY",
+    "ANTHROPIC_API_KEY",
 )
 _SAFE_KEYS = frozenset({"PATH", "HOME", "USER", "LANG", "SHELL", "TERM", "SYSTEMROOT"})
 
@@ -62,12 +69,16 @@ def validate_target(target: str, safe_mode: bool = True) -> str:
         addr = ipaddress.ip_address(stripped)
         if addr.is_loopback or any(addr in net for net in LOCAL_NETWORKS):
             return stripped
-        raise ValueError(f"Target {stripped} blocked — outside local ranges in safe_mode")
+        raise ValueError(
+            f"Target {stripped} blocked — outside local ranges in safe_mode"
+        )
     except ValueError:
         pass
     try:
         net = ipaddress.ip_network(stripped, strict=False)
-        if any(net.subnet_of(local) for local in LOCAL_NETWORKS) or net.subnet_of(LOOPBACK):
+        if any(net.subnet_of(local) for local in LOCAL_NETWORKS) or net.subnet_of(
+            LOOPBACK
+        ):
             return stripped
         raise ValueError(f"Network {stripped} blocked — not a local subnet")
     except ValueError as exc:
@@ -79,6 +90,7 @@ def validate_target(target: str, safe_mode: bool = True) -> str:
 @dataclass
 class ToolResult:
     """Result of a tool execution — captures stdout, stderr, timing, and audit metadata."""
+
     tool: str
     command: str
     exit_code: int
@@ -94,7 +106,7 @@ class ToolResult:
             "tool": self.tool,
             "command": self.command,
             "exit_code": self.exit_code,
-            "stdout": self.stdout[:10_000],   # truncate large outputs
+            "stdout": self.stdout[:10_000],  # truncate large outputs
             "stderr": self.stderr[:2000],
             "duration_sec": round(self.duration_sec, 3),
             "started_at": self.started_at.isoformat(),
@@ -105,7 +117,12 @@ class ToolResult:
 class SafeToolRunner:
     """Async tool executor with validation, filtering, timeouts, and auditing."""
 
-    def __init__(self, safe_mode: bool = True, default_timeout: float = 30.0, max_stdout: int = 100_000):
+    def __init__(
+        self,
+        safe_mode: bool = True,
+        default_timeout: float = 30.0,
+        max_stdout: int = 100_000,
+    ):
         self.safe_mode = safe_mode
         self.default_timeout = default_timeout
         self.max_stdout = max_stdout
@@ -165,11 +182,18 @@ class SafeToolRunner:
                 completed_at=completed,
                 metadata={"target": target} if target else {},
             )
-            logger.info("tool_executed", tool=tool_name, exit=proc.returncode, duration=result.duration_sec)
+            logger.info(
+                "tool_executed",
+                tool=tool_name,
+                exit=proc.returncode,
+                duration=result.duration_sec,
+            )
             return result
         except TimeoutError:
             completed = datetime.now(UTC)
-            logger.warning("tool_timeout", tool=tool_name, timeout=timeout or self.default_timeout)
+            logger.warning(
+                "tool_timeout", tool=tool_name, timeout=timeout or self.default_timeout
+            )
             return ToolResult(
                 tool=tool_name,
                 command=cmd_str,

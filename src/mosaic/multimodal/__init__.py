@@ -6,6 +6,7 @@ Exposes:
   - MultiModalMessage for text+image prompts
   - MultiModalAdapter Mixin to extend any BaseAdapter with vision support
 """
+
 from __future__ import annotations
 
 from .vision import CLIPVisionEncoder, ImageInput, MultiModalMessage, VisionEncoder

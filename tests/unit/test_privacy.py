@@ -1,4 +1,5 @@
 """Privacy filter — PII & secret detection across multiple domains."""
+
 from __future__ import annotations
 
 from mosaic.security.privacy import PrivacyAction, PrivacyFilter

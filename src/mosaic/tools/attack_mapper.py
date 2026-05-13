@@ -17,6 +17,7 @@ Mapping categories:
   • Exfiltration (TA0010)
   • Impact (TA0011)
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -29,14 +30,15 @@ logger = structlog.get_logger()
 
 @dataclass
 class Technique:
-    id: str              # e.g. "T1190"
-    name: str            # e.g. "Exploit Public-Facing Application"
-    tactic: str          # e.g. "Initial Access"
+    id: str  # e.g. "T1190"
+    name: str  # e.g. "Exploit Public-Facing Application"
+    tactic: str  # e.g. "Initial Access"
     description: str = ""
 
 
 class MITREMapper:
     """Maps behavior patterns to ATT&CK technique IDs."""
+
     def __init__(self):
         self._techniques: dict[str, Technique] = self._bootstrap_common()
         self._keyword_map: dict[str, list[str]] = self._bootstrap_keywords()
@@ -72,7 +74,14 @@ class MITREMapper:
     def _bootstrap_keywords(self) -> dict[str, list[str]]:
         # Simple keyword → technique mapping for fast lookup
         return {
-            "T1190": ["public facing", "web shell", "rce", "remote code", "exploit", "vulnerability"],
+            "T1190": [
+                "public facing",
+                "web shell",
+                "rce",
+                "remote code",
+                "exploit",
+                "vulnerability",
+            ],
             "T1059": ["command", "script", "powershell", "bash", "shell", "eval"],
             "T1055": ["injection", "dll", "process hollow", "thread hijack"],
             "T1078": ["valid account", "legitimate credentials", "compromised account"],
@@ -105,7 +114,9 @@ class MITREMapper:
                 matched.append(self._techniques[tid])
         return matched
 
-    def map_findings_batch(self, findings: list[dict[str, Any]]) -> dict[str, list[Technique]]:
+    def map_findings_batch(
+        self, findings: list[dict[str, Any]]
+    ) -> dict[str, list[Technique]]:
         """Batch mapping: { finding_id -> [Techniques] }."""
         results = {}
         for i, f in enumerate(findings):
@@ -116,6 +127,7 @@ class MITREMapper:
     def get_tactic_coverage(self, techniques: list[Technique]) -> dict[str, int]:
         """Count techniques per tactic."""
         from collections import Counter
+
         return dict(Counter(t.tactic for t in techniques))
 
     def to_stix(self) -> str:

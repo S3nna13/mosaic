@@ -1,4 +1,5 @@
 """Memory subsystem — three-tier hierarchical store + semantic vector search."""
+
 from __future__ import annotations
 
 from .exodus import ExodusMemoryStore, MemoryEntry, Tier

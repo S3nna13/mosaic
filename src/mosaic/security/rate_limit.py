@@ -24,7 +24,9 @@ class RateLimitExceeded(Exception):  # noqa: N818
         self.retry_after = retry_after
         self.limit = limit
         self.period = period
-        super().__init__(f"Rate limit {limit}/{period}s exceeded — retry after {retry_after:.1f}s")
+        super().__init__(
+            f"Rate limit {limit}/{period}s exceeded — retry after {retry_after:.1f}s"
+        )
 
 
 @dataclass
@@ -37,6 +39,7 @@ class TokenBucket:
 
 class RateLimiter:
     """Sliding-window rate limiter.  Supports per-key (API key / IP)."""
+
     def __init__(self, limits: LimitsConfig, redis_url: str | None = None):
         self.limits = limits
         self.redis_url = redis_url or os.getenv("MOSAIC_REDIS_URL")
@@ -57,7 +60,8 @@ class RateLimiter:
         if not bucket:
             bucket = TokenBucket(
                 capacity=self.limits.rate_limit_max,
-                refill_rate=self.limits.rate_limit_max / self.limits.rate_limit_window_seconds,
+                refill_rate=self.limits.rate_limit_max
+                / self.limits.rate_limit_window_seconds,
             )
             self._local[key] = bucket
 

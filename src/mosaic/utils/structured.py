@@ -3,6 +3,7 @@
 Integrates with structlog in production, falls back to stdlib if unavailable.
 All MOSAIC components import `get_logger()` instead of using stdlib logging directly.
 """
+
 from __future__ import annotations
 
 import json
@@ -12,6 +13,7 @@ from datetime import UTC, datetime
 
 try:
     import structlog
+
     _structlog_available = True
 except ImportError:
     _structlog_available = False
@@ -46,20 +48,50 @@ def log_event(level: str, event: str, **kwargs):
         method(event, **kwargs)
     else:
         payload = {"event": event, "ts": datetime.now(UTC).isoformat(), **kwargs}
-        logger.log(logging.getLevelName(level.upper()), json.dumps(payload, default=_json_default))
+        logger.log(
+            logging.getLevelName(level.upper()),
+            json.dumps(payload, default=_json_default),
+        )
 
 
 def log_request(method: str, path: str, status: int, duration_ms: float, **extra):
-    print(json.dumps({"event": "http_request", "method": method, "path": path,
-                  "status": status, "duration_ms": duration_ms, **extra}))
+    print(
+        json.dumps(
+            {
+                "event": "http_request",
+                "method": method,
+                "path": path,
+                "status": status,
+                "duration_ms": duration_ms,
+                **extra,
+            }
+        )
+    )
 
 
 def log_guardrail_hit(name: str, severity: str, score: float, **extra):
-    print(json.dumps({"event": "guardrail_hit", "rail": name, "severity": severity,
-                  "score": score, **extra}))
+    print(
+        json.dumps(
+            {
+                "event": "guardrail_hit",
+                "rail": name,
+                "severity": severity,
+                "score": score,
+                **extra,
+            }
+        )
+    )
 
 
 def log_tool_call(tool: str, success: bool, duration_ms: float, **extra):
-    print(json.dumps({"event": "tool_call", "tool": tool, "success": success,
-                  "duration_ms": duration_ms, **extra}))
-
+    print(
+        json.dumps(
+            {
+                "event": "tool_call",
+                "tool": tool,
+                "success": success,
+                "duration_ms": duration_ms,
+                **extra,
+            }
+        )
+    )

@@ -1,4 +1,5 @@
 """FastAPI application exposing MOSAIC as a production service."""
+
 from __future__ import annotations
 
 import time
@@ -108,8 +109,14 @@ async def load_model(req: LoadRequest, background_tasks: BackgroundTasks):
 
     try:
         _decoder = StaffDecoder(cfg)
-        logger.info("decoder_loaded", provider=cfg.model.provider, model=cfg.model.model)
-        return {"status": "loaded", "provider": cfg.model.provider, "model": cfg.model.model}
+        logger.info(
+            "decoder_loaded", provider=cfg.model.provider, model=cfg.model.model
+        )
+        return {
+            "status": "loaded",
+            "provider": cfg.model.provider,
+            "model": cfg.model.model,
+        }
     except Exception as e:
         logger.error("decoder_load_failed", error=str(e))
         raise HTTPException(500, f"Failed to load model: {e}") from e
@@ -127,6 +134,7 @@ async def chat_endpoint(req: ChatRequest):
     mode = None
     if req.mode:
         from mosaic.inference.router import InferenceMode
+
         mode = InferenceMode(req.mode)
 
     try:
@@ -170,6 +178,7 @@ async def chat_endpoint(req: ChatRequest):
 @app.post("/guard")
 async def guard_endpoint(text: str, mode: str = "input"):
     from mosaic.guardrails.engine import GuardrailPipeline
+
     if mode == "input":
         pipeline = GuardrailPipeline.default_input()
         results = await pipeline.check_input(text)
@@ -250,12 +259,14 @@ async def startup_event():
     logger.info("mosaic_api_startup", version="0.3.0")
 
 
-
-
-
 _dashboard_path = Path(__file__).parent.parent / "dashboard"
 if _dashboard_path.exists():
-    app.mount("/dashboard", StaticFiles(directory=str(_dashboard_path), html=True), name="dashboard")
+    app.mount(
+        "/dashboard",
+        StaticFiles(directory=str(_dashboard_path), html=True),
+        name="dashboard",
+    )
+
 
 @app.post("/tools/{tool_name}")
 async def run_tool(tool_name: str, params: dict):
@@ -277,12 +288,14 @@ async def list_tools(layer: str | None = None):
     details = []
     for name in names:
         spec = tool_registry.get(name)
-        details.append({
-            "name": name,
-            "description": spec.description if spec else "",
-            "layer": spec.layer if spec else None,
-            "parameters": spec.parameters if spec else {},
-        })
+        details.append(
+            {
+                "name": name,
+                "description": spec.description if spec else "",
+                "layer": spec.layer if spec else None,
+                "parameters": spec.parameters if spec else {},
+            }
+        )
     return {"tools": details}
 
 
@@ -290,17 +303,28 @@ async def list_tools(layer: str | None = None):
 async def train_sft_endpoint(req: SFTRequest):  # noqa: F821
     """Kick off a Supervised Fine-Tune run using synthetic or provided examples."""
     try:
-        _adapter = build_adapter(provider=req.adapter, model=req.model, api_key=req.api_key)  # noqa: F821
-        gen = SyntheticGenerator(provider=req.adapter, model=req.model, api_key=req.api_key)  # noqa: F821
+        _adapter = build_adapter(
+            provider=req.adapter, model=req.model, api_key=req.api_key
+        )  # noqa: F821
+        gen = SyntheticGenerator(
+            provider=req.adapter, model=req.model, api_key=req.api_key
+        )  # noqa: F821
         examples = None
         if req.examples:
             examples = [SyntheticExample(**ex) for ex in req.examples]  # noqa: F821
         elif req.template:
-            examples = await gen.batch(req.samples or 10, req.template, **req.template_params)
+            examples = await gen.batch(
+                req.samples or 10, req.template, **req.template_params
+            )
         # Trainer would be configured here (stub - actual training requires GPU)
-        return {"status": "started", "mode": "sft", "examples_generated": len(examples) if examples else 0}
+        return {
+            "status": "started",
+            "mode": "sft",
+            "examples_generated": len(examples) if examples else 0,
+        }
     except Exception as e:
         logger.error("sft_failed", error=str(e))
         raise HTTPException(500, f"SFT failed: {e}") from e
+
 
 __all__ = ["app"]

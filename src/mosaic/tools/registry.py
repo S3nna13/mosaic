@@ -3,6 +3,7 @@
 Adapated from CERBERUS tool_registrar.py patterns.
 Tools are classified into layers corresponding to MOSAIC's guardrails and agent modes.
 """
+
 from __future__ import annotations
 
 import json
@@ -22,8 +23,8 @@ logger = structlog.get_logger()
 class Tool:
     name: str
     description: str
-    layer: str                      # "recon", "vuln", "scan", "defense", "intel", "utility"
-    command_template: list[str]     # e.g. ["nmap", "-sV", "{target}"]
+    layer: str  # "recon", "vuln", "scan", "defense", "intel", "utility"
+    command_template: list[str]  # e.g. ["nmap", "-sV", "{target}"]
     parameters: dict[str, dict] = field(default_factory=dict)
     # {"arg": {"type": "string", "required": True, "description": "..."}}
     output_parser: str | None = None  # "json", "yaml", "xml", "lines"
@@ -46,6 +47,7 @@ class Tool:
 
 class ToolRegistry:
     """Singleton registry of all available tools."""
+
     _instance: ToolRegistry | None = None
 
     def __new__(cls):
@@ -71,7 +73,13 @@ class ToolRegistry:
                 description="Fast port scan (top 1000 ports) of a target",
                 layer="recon",
                 command_template=["nmap", "-sS", "-T4", "-F", "{target}"],
-                parameters={"target": {"type": "string", "required": True, "description": "IP or hostname"}},
+                parameters={
+                    "target": {
+                        "type": "string",
+                        "required": True,
+                        "description": "IP or hostname",
+                    }
+                },
                 output_parser="xml",
             ),
             Tool(
@@ -88,7 +96,13 @@ class ToolRegistry:
                 description="Resolve DNS A/AAAA records",
                 layer="recon",
                 command_template=["dig", "+short", "{target}"],
-                parameters={"target": {"type": "string", "required": True, "description": "hostname"}},
+                parameters={
+                    "target": {
+                        "type": "string",
+                        "required": True,
+                        "description": "hostname",
+                    }
+                },
                 output_parser="lines",
             ),
             Tool(
@@ -112,11 +126,16 @@ class ToolRegistry:
                 description="OSINT: emails, subdomains, hosts",
                 layer="recon",
                 command_template=["theHarvester", "-d", "{target}", "-b", "all"],
-                parameters={"target": {"type": "string", "required": True, "description": "domain name"}},
+                parameters={
+                    "target": {
+                        "type": "string",
+                        "required": True,
+                        "description": "domain name",
+                    }
+                },
                 output_parser="json",
                 timeout=60.0,
             ),
-
             # ── Layer 2: Vulnerability Assessment ──────────────────────────────
             Tool(
                 name="nuclei_scan",
@@ -144,13 +163,19 @@ class ToolRegistry:
                 parameters={"query": {"type": "string", "required": True}},
                 output_parser="text",
             ),
-
             # ── Layer 3: Active Scanning / Exploit ─────────────────────────────
             Tool(
                 name="sqlmap",
                 description="Automated SQL injection detection & exploitation",
                 layer="scan",
-                command_template=["sqlmap", "-u", "{url}", "--batch", "--risk=3", "--level=5"],
+                command_template=[
+                    "sqlmap",
+                    "-u",
+                    "{url}",
+                    "--batch",
+                    "--risk=3",
+                    "--level=5",
+                ],
                 parameters={"url": {"type": "string", "required": True}},
                 output_parser="text",
                 timeout=180.0,
@@ -159,12 +184,19 @@ class ToolRegistry:
                 name="msf_console",
                 description="Launch Metasploit console (module execution via set)",
                 layer="scan",
-                command_template=["msfconsole", "-q", "-x", "use {module}; set RHOSTS {target}; run; exit"],
-                parameters={"module": {"type": "string", "required": True}, "target": {"type": "string", "required": True}},
+                command_template=[
+                    "msfconsole",
+                    "-q",
+                    "-x",
+                    "use {module}; set RHOSTS {target}; run; exit",
+                ],
+                parameters={
+                    "module": {"type": "string", "required": True},
+                    "target": {"type": "string", "required": True},
+                },
                 output_parser="text",
                 timeout=300.0,
             ),
-
             # ── Layer 4: Detection & Monitoring ─────────────────────────────────
             Tool(
                 name="zeek_parse",
@@ -179,10 +211,14 @@ class ToolRegistry:
                 description="Query Suricata EVE JSON alerts for a rule/SID",
                 layer="monitor",
                 command_template=["suricata", "-c", "{config}", "-k", "alert"],
-                parameters={"config": {"type": "string", "default": "/etc/suricata/suricata.yaml"}},
+                parameters={
+                    "config": {
+                        "type": "string",
+                        "default": "/etc/suricata/suricata.yaml",
+                    }
+                },
                 output_parser="json",
             ),
-
             # ── Layer 5: Perimeter Defense ──────────────────────────────────────
             Tool(
                 name="iptables_list",
@@ -200,7 +236,6 @@ class ToolRegistry:
                 parameters={},
                 output_parser="text",
             ),
-
             # ── Layer 6: Threat Intelligence ────────────────────────────────────
             Tool(
                 name=" AbuseIPDB_lookup",
@@ -218,7 +253,6 @@ class ToolRegistry:
                 parameters={"resource": {"type": "string", "required": True}},
                 output_parser="json",
             ),
-
             # ── Utility & System ────────────────────────────────────────────────
             Tool(
                 name="ping",
@@ -265,7 +299,10 @@ class ToolRegistry:
                 description="Pattern search in file or stdin",
                 layer="utility",
                 command_template=["grep", "-n", "{pattern}", "{target}"],
-                parameters={"pattern": {"type": "string", "required": True}, "target": {"type": "string", "required": True}},
+                parameters={
+                    "pattern": {"type": "string", "required": True},
+                    "target": {"type": "string", "required": True},
+                },
                 output_parser="lines",
             ),
             Tool(
@@ -327,7 +364,7 @@ class ToolRegistry:
         cmd = tool.render(**kwargs)
 
         # Audit log before execution
-        _session_id = self._ledger.start_session()   # returns existing if already open
+        _session_id = self._ledger.start_session()  # returns existing if already open
         self._ledger.append(
             ActionType.TOOL_CALL,
             actor="agent",
@@ -348,11 +385,17 @@ class ToolRegistry:
             self._ledger.append(
                 ActionType.TOOL_RESULT,
                 actor="agent",
-                details={"tool": name, "exit_code": result.exit_code, "duration": result.duration_sec},
+                details={
+                    "tool": name,
+                    "exit_code": result.exit_code,
+                    "duration": result.duration_sec,
+                },
             )
             return result
         except Exception as e:
-            self._ledger.append(ActionType.ERROR, actor="agent", details={"tool": name, "error": str(e)})
+            self._ledger.append(
+                ActionType.ERROR, actor="agent", details={"tool": name, "error": str(e)}
+            )
             raise
 
     def _parse_output(self, text: str, format: str) -> Any:
@@ -360,6 +403,7 @@ class ToolRegistry:
             return json.loads(text)
         if format == "yaml":
             import yaml
+
             return yaml.safe_load(text)
         if format == "xml":
             # Return parsed ElementTree root

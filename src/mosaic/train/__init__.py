@@ -29,6 +29,7 @@ class SyntheticExample:
 
 class SyntheticGenerator:
     """Generates synthetic instruction-response pairs via teacher model."""
+
     PROMPTS = {  # noqa: RUF012
         "qa": 'Generate a question-answer pair about {topic}. Return ONLY JSON: {"question": "...", "answer": "..."}',
         "summary": "Write a 2-sentence summary of: {text}",
@@ -36,7 +37,12 @@ class SyntheticGenerator:
         "math": "Create a {difficulty} algebra problem. Then show step-by-step solution.",
     }
 
-    def __init__(self, provider: str = "openai", model: str = "gpt-4o-mini", api_key: str | None = None):
+    def __init__(
+        self,
+        provider: str = "openai",
+        model: str = "gpt-4o-mini",
+        api_key: str | None = None,
+    ):
         self.adapter = build_adapter(provider=provider, model=model, api_key=api_key)
 
     async def generate(self, template: str, **kwargs) -> SyntheticExample:
@@ -45,7 +51,9 @@ class SyntheticGenerator:
         resp = await self.adapter.chat(messages, temperature=0.8, max_tokens=768)
         try:
             data = json.loads(resp.content)
-            return SyntheticExample(instruction=prompt, output=resp.content, metadata=data)
+            return SyntheticExample(
+                instruction=prompt, output=resp.content, metadata=data
+            )
         except Exception:
             return SyntheticExample(instruction=prompt, output=resp.content)
 
@@ -68,7 +76,10 @@ class TrainerConfig:
 
 class Trainer:
     """Simple PyTorch trainer with accumulation + checkpointing."""
-    def __init__(self, model: MosaicTransformer, cfg: TrainerConfig, device: str | None = None):
+
+    def __init__(
+        self, model: MosaicTransformer, cfg: TrainerConfig, device: str | None = None
+    ):
         self.model = model
         self.cfg = cfg
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -96,12 +107,15 @@ class Trainer:
         ckpt_dir = Path(self.cfg.checkpoint_dir)
         ckpt_dir.mkdir(parents=True, exist_ok=True)
         path = path or str(ckpt_dir / f"mosaic_step{self.global_step}.pt")
-        torch.save({
-            "model": self.model.state_dict(),
-            "optimizer": self.optimizer.state_dict(),
-            "step": self.global_step,
-            "config": self.cfg,
-        }, path)
+        torch.save(
+            {
+                "model": self.model.state_dict(),
+                "optimizer": self.optimizer.state_dict(),
+                "step": self.global_step,
+                "config": self.cfg,
+            },
+            path,
+        )
         return path
 
     def train(self, dataloader, steps: int | None = None) -> None:
@@ -129,6 +143,7 @@ class RLHFConfig:
 
 class RLTrainer:
     """Placeholder: GRPO/PPO alignment loop. Real implementation needs ref policy + value net."""
+
     def __init__(self, policy_model: MosaicTransformer, cfg: RLHFConfig):
         self.policy = policy_model
         self.cfg = cfg

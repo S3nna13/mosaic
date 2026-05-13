@@ -9,6 +9,7 @@ Commands:
   mosaic config  — validate and dump merged config
   mosaic audit   — tail ArkLedger
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -38,7 +39,6 @@ console = Console()
 def cli():
     """MOSAIC — Multi-Origin Synthesis of Intelligent Capabilities."""
     pass
-
 
 
 @cli.group("tools")
@@ -75,19 +75,31 @@ def tools_run_cmd(tool_name, params):
         k, v = p.split("=", 1)
         params_dict[k] = v
     import asyncio
+
     async def run():
         try:
             result = await tool_registry.execute(tool_name, **params_dict)
             console.print(json.dumps(result.as_dict(), indent=2))
         except Exception as e:
             console.print(f"[red]Error: {e}[/red]")
+
     asyncio.run(run())
+
 
 @cli.command("chat")
 @click.argument("prompt", required=False)
-@click.option("--mode", type=click.Choice(["fast", "deliberate", "search", "agent", "memory"]), help="Inference mode")
+@click.option(
+    "--mode",
+    type=click.Choice(["fast", "deliberate", "search", "agent", "memory"]),
+    help="Inference mode",
+)
 @click.option("--config", default="configs/serve/local.yaml", help="YAML config path")
-@click.option("--adapter", "provider", default="openai", type=click.Choice(["openai", "anthropic", "ollama", "local"]))
+@click.option(
+    "--adapter",
+    "provider",
+    default="openai",
+    type=click.Choice(["openai", "anthropic", "ollama", "local"]),
+)
 @click.option("--model", default=None, help="Model name to use")
 @click.option("--no-guard", is_flag=True, default=False, help="Disable guardrails")
 def chat_cmd(prompt: str | None, mode, config, provider, model, no_guard):
@@ -106,7 +118,9 @@ def chat_cmd(prompt: str | None, mode, config, provider, model, no_guard):
         )
         resp = await decoder.decode(req)
         console.print(f"\n[bold cyan]{resp.content}[/bold cyan]\n")
-        console.print(f"[dim]mode={resp.mode_used.value}  stability={resp.stability:.2f}  tokens={resp.usage}[/dim]\n")
+        console.print(
+            f"[dim]mode={resp.mode_used.value}  stability={resp.stability:.2f}  tokens={resp.usage}[/dim]\n"
+        )
 
     if prompt:
         asyncio.run(run_chat(prompt))
@@ -126,16 +140,21 @@ def chat_cmd(prompt: str | None, mode, config, provider, model, no_guard):
 @click.option("--host", default="0.0.0.0", help="Bind address")
 @click.option("--port", default=8000, type=int, help="Bind port")
 @click.option("--config", default="configs/serve/local.yaml", help="YAML config path")
-@click.option("--reload", is_flag=True, default=False, help="Auto-reload on source changes")
+@click.option(
+    "--reload", is_flag=True, default=False, help="Auto-reload on source changes"
+)
 def serve_cmd(host, port, config, reload):
     """Start the FastAPI service with uvicorn."""
     import uvicorn
+
     console.print(f"[bold]Starting MOSAIC API on http://{host}:{port}[/bold]")
     uvicorn.run("mosaic.api:app", host=host, port=port, reload=reload, log_level="info")
 
 
 @cli.command("eval")
-@click.argument("benchmark", type=click.Choice(["mmlu", "gsm8k", "humaneval", "custom"]))
+@click.argument(
+    "benchmark", type=click.Choice(["mmlu", "gsm8k", "humaneval", "custom"])
+)
 @click.option("--config", default="configs/eval/release_gates.yaml")
 @click.option("--output", default="reports/", help="Directory for results")
 def eval_cmd(benchmark, config, output):
@@ -162,6 +181,7 @@ def eval_cmd(benchmark, config, output):
 @click.option("--mode", type=click.Choice(["input", "output"]), default="input")
 def guard_cmd(text, mode):
     """Inspect guardrail decisions for TEXT."""
+
     async def run():
         if mode == "input":
             pipeline = GuardrailPipeline.default_input()
@@ -178,8 +198,16 @@ def guard_cmd(text, mode):
         table.add_column("Reason")
         for r in results:
             col = "green" if r.passed else "red"
-            table.add_row(r.name, str(r.passed), f"{r.score:.2f}", r.severity, r.reason or "-", style=col)
+            table.add_row(
+                r.name,
+                str(r.passed),
+                f"{r.score:.2f}",
+                r.severity,
+                r.reason or "-",
+                style=col,
+            )
         console.print(table)
+
     asyncio.run(run())
 
 
@@ -210,7 +238,9 @@ def audit_cmd(lines):
 def reset_cmd():
     """Clear current session memory (Exodus scratch + episode)."""
     # This requires decoder; make a temporary one just to clear?  Better to persist a global.
-    console.print("[yellow]Not implemented in standalone CLI - use /reset API endpoint or restart process.[/yellow]")
+    console.print(
+        "[yellow]Not implemented in standalone CLI - use /reset API endpoint or restart process.[/yellow]"
+    )
 
 
 if __name__ == "__main__":

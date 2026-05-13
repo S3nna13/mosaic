@@ -13,13 +13,14 @@ Strategy:
   • Simple PID-like adjustment: error = actual_fp - target_fp; adjust += Kp * error
   • Bounds: thresholds stay in [0.05, 0.95] to avoid degenerate settings
 """
+
 from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass, field
 
 # Simple proportional controller; could extend to PI or PID
-KP = 0.02    # proportional gain
+KP = 0.02  # proportional gain
 MIN_THRESHOLD = 0.05
 MAX_THRESHOLD = 0.95
 WINDOW = 100  # decisions to consider
@@ -29,7 +30,9 @@ WINDOW = 100  # decisions to consider
 class RailStats:
     name: str
     threshold: float
-    decisions: deque[tuple[bool, bool]] = field(default_factory=lambda: deque(maxlen=WINDOW))
+    decisions: deque[tuple[bool, bool]] = field(
+        default_factory=lambda: deque(maxlen=WINDOW)
+    )
     # decision stored as (passed, was_correct).  was_correct comes from downstream signal:
     #   - If INPUT rail blocks and audit says rightly blocked → True
     #   - If INPUT rail passes and later security incident → False
@@ -62,12 +65,15 @@ class RailStats:
 
 class AdaptiveGuardrailTuner:
     """Registry for all rails; call after each decision to possibly adjust thresholds."""
+
     def __init__(self):
         self._stats: dict[str, RailStats] = {}
 
     def register(self, rail_name: str, initial_threshold: float = 0.3) -> None:
         if rail_name not in self._stats:
-            self._stats[rail_name] = RailStats(name=rail_name, threshold=initial_threshold)
+            self._stats[rail_name] = RailStats(
+                name=rail_name, threshold=initial_threshold
+            )
 
     def record(self, rail_name: str, passed: bool, correct: bool | None = None) -> None:
         self.register(rail_name)  # ensure exists

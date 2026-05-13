@@ -24,6 +24,7 @@ class UnsafeMemoryWriteGate(SafetyGate):
         r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",  # email
         r"\\b(?:[0-9]{1,3}\\.){3}[0-9]{1,3}\\b",  # IPv4
     )
+
     def check(self, context: dict[str, Any]) -> tuple[bool, str | None]:
         content = str(context.get("memory_content", ""))
         for pattern in self.PII_PATTERNS:
@@ -56,6 +57,7 @@ class PrivateDataExtractionGate(SafetyGate):
         r"(?i)reveal (?:your|the) (?:system|hidden) (?:prompt|instructions)",
         r"(?i)print your system prompt",
     )
+
     def check(self, context: dict[str, Any]) -> tuple[bool, str | None]:
         prompt = str(context.get("prompt", ""))
         for pattern in self.INJECT_PATTERNS:

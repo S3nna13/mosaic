@@ -8,6 +8,7 @@ from typing import Any
 
 try:
     import pydantic  # noqa: F401
+
     HAVE_PYDANTIC = True
 except ImportError:
     HAVE_PYDANTIC = False
@@ -16,6 +17,7 @@ except ImportError:
 @dataclass
 class ToolSpec:
     """Metadata describing a callable tool."""
+
     name: str
     description: str
     func: Callable

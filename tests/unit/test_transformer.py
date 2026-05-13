@@ -1,4 +1,5 @@
 """Transformer model tests — forward pass, attention, memory injection, verifier head."""
+
 from __future__ import annotations
 
 import torch
@@ -26,8 +27,8 @@ def test_gqa_attention_uses_kv_heads():
 def test_verifier_head_scalar():
     cfg = MosaicConfig(d_model=256)
     verifier = VerifierHead(cfg.d_model)
-    hidden = torch.randn(2, 16, cfg.d_model)   # [batch, seq, d_model]
-    scores = verifier(hidden)                  # [batch, seq]
+    hidden = torch.randn(2, 16, cfg.d_model)  # [batch, seq, d_model]
+    scores = verifier(hidden)  # [batch, seq]
     assert scores.shape == (2, 16)
 
 

@@ -19,14 +19,25 @@ def build_adapter(
     """Factory — instantiate adapter from provider string + arguments."""
     provider = provider.lower()
     if provider == "openai":
-        return OpenAIAdapter(api_key=api_key or "env", model=model or "gpt-4o-mini", **kwargs)
+        return OpenAIAdapter(
+            api_key=api_key or "env", model=model or "gpt-4o-mini", **kwargs
+        )
     if provider == "anthropic":
-        return AnthropicAdapter(api_key=api_key or "env", model=model or "claude-3-5-sonnet-20241022")
+        return AnthropicAdapter(
+            api_key=api_key or "env", model=model or "claude-3-5-sonnet-20241022"
+        )
     if provider == "ollama":
-        return OllamaAdapter(base_url=kwargs.get("host", "http://localhost:11434"), model=model or "llama3.2:3b")
+        return OllamaAdapter(
+            base_url=kwargs.get("host", "http://localhost:11434"),
+            model=model or "llama3.2:3b",
+        )
     if provider in ("local", "mosaic"):
-        return LocalAdapter(model_path=kwargs.get("path", ""), use_mosaic_transformer=(provider == "mosaic"))
+        return LocalAdapter(
+            model_path=kwargs.get("path", ""),
+            use_mosaic_transformer=(provider == "mosaic"),
+        )
     raise ValueError(f"Unknown provider: {provider}")
+
 
 __all__ = [
     "AnthropicAdapter",

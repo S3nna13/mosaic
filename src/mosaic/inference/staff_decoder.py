@@ -6,6 +6,7 @@ Unique MOSAIC features implemented:
   • Security→Memory feedback: output PII/secrets trigger memory purge + audit log
   • Periodic memory consolidation: SCRATCH → EPISODE → ARCHIVE
 """
+
 from __future__ import annotations
 
 import time
@@ -56,6 +57,7 @@ class StaffDecoder:
       8. Archive conversation turn into Exodus
       9. Audit via ArkLedger
     """
+
     def __init__(self, cfg: AigisConfig):
         self.cfg = cfg
 
@@ -64,13 +66,15 @@ class StaffDecoder:
             self.local_model: MosaicTransformer | None = None
             if cfg.model.path:
                 # TODO: from_pretrained loader
-                self.local_model = MosaicTransformer(MosaicConfig(
-                    n_layers=cfg.model.depth or 24,
-                    dim=cfg.model.width or 2048,
-                    n_heads=cfg.model.n_heads or 16,
-                    n_kv_heads=cfg.model.n_kv_heads or 4,
-                    max_seq_len=cfg.model.context_length or 8192,
-                ))
+                self.local_model = MosaicTransformer(
+                    MosaicConfig(
+                        n_layers=cfg.model.depth or 24,
+                        dim=cfg.model.width or 2048,
+                        n_heads=cfg.model.n_heads or 16,
+                        n_kv_heads=cfg.model.n_kv_heads or 4,
+                        max_seq_len=cfg.model.context_length or 8192,
+                    )
+                )
             else:
                 self.local_model = MosaicTransformer(MosaicConfig())
             self.local_model.eval()
@@ -93,11 +97,17 @@ class StaffDecoder:
         )
         self.sinai = None  # TODO: SinaiRegisters(dim=cfg.model.width, count=16)
         self.privacy = PrivacyFilter()
-        self.guardrails = GuardrailPipeline.default_input() if cfg.guard.enabled else None
-        self.guardrails_out = GuardrailPipeline.default_output() if cfg.guard.enabled else None
+        self.guardrails = (
+            GuardrailPipeline.default_input() if cfg.guard.enabled else None
+        )
+        self.guardrails_out = (
+            GuardrailPipeline.default_output() if cfg.guard.enabled else None
+        )
         self.ledger = get_ledger()
 
-    async def decode(self, req: DecodeRequest, session_id: str | None = None) -> DecodeResponse:
+    async def decode(
+        self, req: DecodeRequest, session_id: str | None = None
+    ) -> DecodeResponse:
         start = time.time()
         _sid = session_id or self.ledger.start_session()
         last_msg = req.messages[-1]
@@ -106,18 +116,28 @@ class StaffDecoder:
         # Step 1 - Privacy scan
         cleaned, pii_findings = self.privacy.scan(prompt_text)
         if self.privacy.contains_secret_blockers(prompt_text):
-            self.ledger.append(ActionType.INPUT_SCANNED, actor="system", decision="BLOCKED",
-                               details={"reason": "secret_patterns", "findings": pii_findings})
+            self.ledger.append(
+                ActionType.INPUT_SCANNED,
+                actor="system",
+                decision="BLOCKED",
+                details={"reason": "secret_patterns", "findings": pii_findings},
+            )
             raise PermissionError("Input blocked: sensitive pattern detected")
 
         # Step 2 - Input guardrails
         input_results: list[GuardrailResult] = []
         if req.guardrails and self.guardrails:
             input_results = await self.guardrails.check_input(cleaned)
-            blocked = [r for r in input_results if not r.passed and r.severity == "critical"]
+            blocked = [
+                r for r in input_results if not r.passed and r.severity == "critical"
+            ]
             if blocked:
-                self.ledger.append(ActionType.GUARDRAIL_BLOCK, actor="guard", decision="BLOCKED",
-                                   details={"rails": [b.name for b in blocked]})
+                self.ledger.append(
+                    ActionType.GUARDRAIL_BLOCK,
+                    actor="guard",
+                    decision="BLOCKED",
+                    details={"rails": [b.name for b in blocked]},
+                )
                 raise PermissionError(f"Input blocked: {[b.reason for b in blocked]}")
 
         # Step 3 - Determine mode
@@ -147,7 +167,9 @@ class StaffDecoder:
                 stability = 0.85 if current_mode == InferenceMode.DELIBERATE else 0.65
                 usage = {"prompt_tokens": 100, "completion_tokens": 50}
             else:
-                resp = self.adapter.chat(req.messages, temperature=req.temperature, max_tokens=req.max_tokens)
+                resp = self.adapter.chat(
+                    req.messages, temperature=req.temperature, max_tokens=req.max_tokens
+                )
                 content = resp.content
                 stability = 0.92  # external adapters assumed stable
                 usage = resp.usage
@@ -160,8 +182,11 @@ class StaffDecoder:
                 break
 
         if stability < 0.75:
-            self.ledger.append(ActionType.ALIGNMENT_OVERRIDE, actor="router",
-                               details={"reason": "low_stability", "mode": current_mode.value})
+            self.ledger.append(
+                ActionType.ALIGNMENT_OVERRIDE,
+                actor="router",
+                details={"reason": "low_stability", "mode": current_mode.value},
+            )
 
         # Step 6 - Output guardrails
         output_results: list[GuardrailResult] = []
@@ -172,13 +197,25 @@ class StaffDecoder:
         if req.guardrails:
             leaks = [r for r in output_results if r.name in ("pii", "secrets")]
             if leaks:
-                self.ledger.append(ActionType.MEMORY_PRUNE, actor="security",
-                                   details={"trigger": "output_leak", "rails": [r.name for r in leaks]})
+                self.ledger.append(
+                    ActionType.MEMORY_PRUNE,
+                    actor="security",
+                    details={
+                        "trigger": "output_leak",
+                        "rails": [r.name for r in leaks],
+                    },
+                )
                 self.memory.clear_all()
 
         # Step 8 - Archive turn into Exodus
         if len(prompt_text) > 10:
-            self.memory.add(Tier.SCRATCH, tokens=[], text=prompt_text[:200], priority=0.6, ttl_seconds=300)
+            self.memory.add(
+                Tier.SCRATCH,
+                tokens=[],
+                text=prompt_text[:200],
+                priority=0.6,
+                ttl_seconds=300,
+            )
 
         # Step 9 - Audit log
         latency = time.time() - start

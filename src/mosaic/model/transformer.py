@@ -6,6 +6,7 @@ We define:
 - VerifierHead: per-token stability prediction
 - Special token IDs for memory/register/tool markers
 """
+
 from __future__ import annotations
 
 import math
@@ -23,15 +24,16 @@ class Token:
     MEM_SCRATCH = 128_000  # start of scratch segment
     MEM_EPISODE = 128_001
     MEM_ARCHIVE = 128_002
-    REGISTER    = 128_003  # Sinai register marker
-    TOOL_CALL   = 128_004
+    REGISTER = 128_003  # Sinai register marker
+    TOOL_CALL = 128_004
     TOOL_RESULT = 128_005
-    VERIFY      = 128_006  # verifier flow control
+    VERIFY = 128_006  # verifier flow control
 
 
 @dataclass
 class MosaicConfig:
     """Structural hyper-parameters for the Mosaic transformer."""
+
     vocab_size: int = 128_256  # GPT-4 tokenizer size
     n_layers: int = 24
     n_heads: int = 16
@@ -43,7 +45,7 @@ class MosaicConfig:
     rope_scaling: dict | None = None  # e.g. {"type":"dynamic","factor":2.0}
     use_exodus_cross_attn: bool = True  # inject memory every N layers
     exodus_inject_every: int = 4
-    register_count: int = 16   # number of Sinai learnable tokens
+    register_count: int = 16  # number of Sinai learnable tokens
     dropout: float = 0.1
     bias: bool = False
 
@@ -59,6 +61,7 @@ class MosaicConfig:
 
 class RMSNorm(nn.Module):
     """Root-mean-square layer norm (no bias)."""
+
     def __init__(self, dim: int, eps: float = 1e-6):
         super().__init__()
         self.weight = nn.Parameter(torch.ones(dim))
@@ -73,6 +76,7 @@ class RMSNorm(nn.Module):
 
 class RotaryEmbedding(nn.Module):
     """RoPE sinusoidal position embeddings."""
+
     def __init__(self, dim: int, max_seq_len: int, theta: float = 10000.0):
         super().__init__()
         inv_freq = 1.0 / (theta ** (torch.arange(0, dim, 2, dtype=torch.float32) / dim))
@@ -80,7 +84,9 @@ class RotaryEmbedding(nn.Module):
         self.dim = dim
         self.max_seq_len = max_seq_len
 
-    def forward(self, seq_len: int, device: torch.device) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(
+        self, seq_len: int, device: torch.device
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         t = torch.arange(seq_len, device=device, dtype=self.inv_freq.dtype)
         freqs = torch.einsum("i,j->ij", t, self.inv_freq)  # [T, dim//2]
         emb = torch.cat((freqs, freqs), dim=-1)  # [T, dim]
@@ -89,7 +95,9 @@ class RotaryEmbedding(nn.Module):
         return cos, sin
 
     @staticmethod
-    def apply_rope(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
+    def apply_rope(
+        x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor
+    ) -> torch.Tensor:
         # x: [B, T, n_heads, head_dim]
         # cos/sin: [1, T, 1, head_dim] broadcast compatible
         head_dim = x.shape[-1]
@@ -101,6 +109,7 @@ class RotaryEmbedding(nn.Module):
 
 class GQAAttention(nn.Module):
     """Grouped-Query Attention with optional Exodus tier cross-attention."""
+
     def __init__(self, cfg: MosaicConfig, layer_idx: int):
         super().__init__()
         self.cfg = cfg
@@ -149,7 +158,11 @@ class GQAAttention(nn.Module):
         # ── Build attention mask ────────────────────────────────────────────
         # Causal mask plus optional memory-causality (memory tokens always visible)
         attn_mask = torch.triu(torch.ones(T, T, device=x.device), diagonal=1).bool()
-        if exodus_scratch is not None or exodus_episode is not None or exodus_archive is not None:
+        if (
+            exodus_scratch is not None
+            or exodus_episode is not None
+            or exodus_archive is not None
+        ):
             # Concatenate memory tiers (if present) to K/V for cross-attn
             mem_list: list[torch.Tensor] = []
             if exodus_scratch is not None:
@@ -162,7 +175,9 @@ class GQAAttention(nn.Module):
                 mem_cat = torch.cat(mem_list, dim=1)  # [B, m_tot, dim]
                 km = self.wk(mem_cat).view(B, -1, self.n_kv_heads, self.head_dim)
                 vm = self.wv(mem_cat).view(B, -1, self.n_kv_heads, self.head_dim)
-                km = RotaryEmbedding.apply_rope(km, cos[: km.size(1)], sin[: km.size(1)])
+                km = RotaryEmbedding.apply_rope(
+                    km, cos[: km.size(1)], sin[: km.size(1)]
+                )
                 km = torch.repeat_interleave(km, dim=2, repeats=self.n_local)
                 vm = torch.repeat_interleave(vm, dim=2, repeats=self.n_local)
                 k = torch.cat([k, km], dim=1)
@@ -170,7 +185,9 @@ class GQAAttention(nn.Module):
 
                 # ── Sinai Registers ─────────────────────────────────────────
                 # Learnable tokens injected at start of every sequence
-                regs = self.sinai_registers.unsqueeze(0).expand(B, -1, -1)  # [B, R, dim]
+                regs = self.sinai_registers.unsqueeze(0).expand(
+                    B, -1, -1
+                )  # [B, R, dim]
                 kr = self.wk(regs).view(B, -1, self.n_kv_heads, self.head_dim)
                 vr = self.wv(regs).view(B, -1, self.n_kv_heads, self.head_dim)
                 kr = torch.repeat_interleave(kr, dim=2, repeats=self.n_local)
@@ -183,7 +200,9 @@ class GQAAttention(nn.Module):
                 causal_ext = torch.zeros(T, m_tot, device=x.device, dtype=torch.bool)
                 attn_mask = torch.cat([causal_ext, attn_mask], dim=1)  # [T, m_tot+T]
                 # lower-triangular for the (M+T) side
-                attn_mask = torch.triu(torch.ones(T + m_tot, T + m_tot, device=x.device), diagonal=1).bool()
+                attn_mask = torch.triu(
+                    torch.ones(T + m_tot, T + m_tot, device=x.device), diagonal=1
+                ).bool()
                 # but queries (real tokens) must NOT see *future* real tokens; they CAN see all memory
                 # mask shape: [T_query, K_total]
                 # We'll build it incrementally later; for now keep simple causal for speed.
@@ -195,7 +214,9 @@ class GQAAttention(nn.Module):
         scores = torch.matmul(q, k.transpose(-2, -1)) * (1.0 / math.sqrt(self.head_dim))
 
         if attn_mask is not None:
-            scores = scores.masked_fill(attn_mask.unsqueeze(0).unsqueeze(0), float("-inf"))
+            scores = scores.masked_fill(
+                attn_mask.unsqueeze(0).unsqueeze(0), float("-inf")
+            )
 
         attn = F.softmax(scores, dim=-1)
         attn = F.dropout(attn, p=self.cfg.dropout, training=self.training)
@@ -236,10 +257,14 @@ class MosaicTransformerBlock(nn.Module):
         # Attention residual
         r = x
         x = self.attn_norm(x)
-        x = self.attn(x, cos, sin,
-                      exodus_scratch=exodus_scratch,
-                      exodus_episode=exodus_episode,
-                      exodus_archive=exodus_archive)
+        x = self.attn(
+            x,
+            cos,
+            sin,
+            exodus_scratch=exodus_scratch,
+            exodus_episode=exodus_episode,
+            exodus_archive=exodus_archive,
+        )
         x = r + x
 
         # MLP residual
@@ -251,15 +276,16 @@ class MosaicTransformerBlock(nn.Module):
 
 class MosaicTransformer(nn.Module):
     """Full Mosaic transformer with Exodus awareness and verifier head."""
+
     def __init__(self, cfg: MosaicConfig):
         super().__init__()
         self.cfg = cfg
         self.tok_embeddings = nn.Embedding(cfg.vocab_size, cfg.dim)
         self.rope = RotaryEmbedding(cfg.head_dim, cfg.max_seq_len, cfg.rope_theta)
 
-        self.layers = nn.ModuleList([
-            MosaicTransformerBlock(cfg, i) for i in range(cfg.n_layers)
-        ])
+        self.layers = nn.ModuleList(
+            [MosaicTransformerBlock(cfg, i) for i in range(cfg.n_layers)]
+        )
         self.output_norm = RMSNorm(cfg.dim)
         self.lm_head = nn.Linear(cfg.dim, cfg.vocab_size, bias=False)
 
@@ -284,11 +310,15 @@ class MosaicTransformer(nn.Module):
         exodus_archive: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Returns *logits* only — sampling performed by StaffDecoder."""
-        _B, T = input_ids.shape    # noqa: N806
+        _B, T = input_ids.shape  # noqa: N806
         x = self.tok_embeddings(input_ids)
         cos, sin = self.rope(T, device=input_ids.device)
 
-        exodus_inputs = (exodus_scratch, exodus_episode, exodus_archive) if self.cfg.use_exodus_cross_attn else (None, None, None)
+        exodus_inputs = (
+            (exodus_scratch, exodus_episode, exodus_archive)
+            if self.cfg.use_exodus_cross_attn
+            else (None, None, None)
+        )
 
         for layer in self.layers:
             x = layer(x, cos, sin, *exodus_inputs)
@@ -336,7 +366,9 @@ class MosaicTransformer(nn.Module):
             with torch.no_grad():
                 _top_k = torch.topk(probs, k=5).values
                 entropy = -torch.sum(probs * torch.log(probs + 1e-9), dim=-1)
-                stability = 1.0 - (entropy / math.log(probs.shape[-1]))  # normalised [0,1]
+                stability = 1.0 - (
+                    entropy / math.log(probs.shape[-1])
+                )  # normalised [0,1]
                 stabilities.append(stability.item())
 
             if stability < stability_threshold:

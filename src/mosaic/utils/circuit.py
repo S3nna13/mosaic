@@ -38,7 +38,10 @@ class CircuitBreaker:
     def allow_request(self) -> bool:
         if self._state == "closed":
             return True
-        if self._state == "open" and time.time() - self._last_failure > self.recovery_timeout:
+        if (
+            self._state == "open"
+            and time.time() - self._last_failure > self.recovery_timeout
+        ):
             self._state = "half-open"
             return True
         return False
@@ -46,6 +49,7 @@ class CircuitBreaker:
 
 def with_retry(max_attempts: int = 3, backoff_factor: float = 0.5):
     """Decorator that retries function on exception."""
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         @functools.wraps(func)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
@@ -56,10 +60,12 @@ def with_retry(max_attempts: int = 3, backoff_factor: float = 0.5):
                 except Exception as exc:  # catch broad, retry on transient failures
                     last_exc = exc
                     if attempt < max_attempts - 1:
-                        delay = backoff_factor * (2 ** attempt)
+                        delay = backoff_factor * (2**attempt)
                         await asyncio.sleep(delay)
             raise last_exc or RuntimeError("Unreachable")
+
         return wrapper
+
     return decorator
 
 

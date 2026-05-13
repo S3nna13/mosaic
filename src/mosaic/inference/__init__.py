@@ -1,4 +1,5 @@
 """Inference: decoding strategies, runtime policies, staff decoder."""
+
 from __future__ import annotations
 
 from .compute_policy import ComputePolicy

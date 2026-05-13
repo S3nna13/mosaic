@@ -1,4 +1,5 @@
 """Ollama adapter — local Ollama HTTP server backend."""
+
 from __future__ import annotations
 
 import httpx
@@ -9,7 +10,9 @@ from mosaic.adapters.base import BaseAdapter, Message, ModelResponse
 class OllamaAdapter(BaseAdapter):
     name = "ollama"
 
-    def __init__(self, host: str = "http://localhost:11434", model: str = "llama3.2:3b"):
+    def __init__(
+        self, host: str = "http://localhost:11434", model: str = "llama3.2:3b"
+    ):
         self.host = host.rstrip("/")
         self.model = model
         self._client = httpx.Client(timeout=60.0)
@@ -32,7 +35,10 @@ class OllamaAdapter(BaseAdapter):
         return ModelResponse(
             content=data.get("message", {}).get("content", ""),
             model=self.model,
-            usage={"prompt_tokens": data.get("prompt_eval_count", 0), "completion_tokens": data.get("eval_count", 0)},
+            usage={
+                "prompt_tokens": data.get("prompt_eval_count", 0),
+                "completion_tokens": data.get("eval_count", 0),
+            },
             raw=data,
         )
 

@@ -20,9 +20,11 @@ def load_config(path: str | Path) -> AigisConfig:
     except Exception as e:
         raise ValueError(f"Invalid config in {path}: {e}") from e
 
+
 def validate_config(raw: dict) -> AigisConfig:
     _merge_top_level(raw)
     return AigisConfig.model_validate(raw)
+
 
 def _merge_top_level(raw: dict) -> None:
     top_model = raw.get("model")
@@ -37,6 +39,7 @@ def _merge_top_level(raw: dict) -> None:
                 sub["name"] = top_name
             if top_desc and "description" not in sub:
                 sub["description"] = top_desc
+
 
 __all__ = [
     "load_config",

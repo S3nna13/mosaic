@@ -33,7 +33,9 @@ class JailbreakDetector(Guardrail):
 
     def __init__(self, threshold: float = 0.3):
         self.threshold = threshold
-        self._regex = re.compile("|".join(map(re.escape, self.JAILBREAK_PATTERNS)), re.IGNORECASE)
+        self._regex = re.compile(
+            "|".join(map(re.escape, self.JAILBREAK_PATTERNS)), re.IGNORECASE
+        )
 
     async def check(self, text: str, context: str | None = None) -> GuardrailResult:
         matches = self._regex.findall(text.lower())

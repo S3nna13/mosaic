@@ -6,6 +6,7 @@ Checks:
   2. All .py files parse as valid Python
   3. Core modules (no heavy optional deps) import cleanly
 """
+
 from __future__ import annotations
 
 import ast
@@ -18,9 +19,21 @@ SRC = ROOT / "src" / "mosaic"
 
 def check_package_files() -> bool:
     ok = True
-    for sub in ["model", "memory", "security", "guardrails", "adapters",
-                "tools", "train", "eval", "inference", "core", "multimodal",
-                "audit", "orchestration"]:
+    for sub in [
+        "model",
+        "memory",
+        "security",
+        "guardrails",
+        "adapters",
+        "tools",
+        "train",
+        "eval",
+        "inference",
+        "core",
+        "multimodal",
+        "audit",
+        "orchestration",
+    ]:
         init = SRC / sub / "__init__.py"
         if not init.exists():
             print(f"✗ MISSING  {sub}/__init__.py")
@@ -46,12 +59,21 @@ def check_syntax() -> bool:
 def check_imports() -> bool:
     sys.path.insert(0, str(SRC))
     core_mods = [
-        "mosaic", "mosaic.core", "mosaic.core.schema", "mosaic.core.config",
-        "mosaic.model", "mosaic.model.config",
-        "mosaic.guardrails.engine", "mosaic.guardrails.tuner",
-        "mosaic.tools.runner", "mosaic.tools.registry", "mosaic.tools.attack_mapper",
-        "mosaic.eval.metrics", "mosaic.inference.router",
-        "mosaic.multimodal.vision", "mosaic.multimodal.adapter_mixin",
+        "mosaic",
+        "mosaic.core",
+        "mosaic.core.schema",
+        "mosaic.core.config",
+        "mosaic.model",
+        "mosaic.model.config",
+        "mosaic.guardrails.engine",
+        "mosaic.guardrails.tuner",
+        "mosaic.tools.runner",
+        "mosaic.tools.registry",
+        "mosaic.tools.attack_mapper",
+        "mosaic.eval.metrics",
+        "mosaic.inference.router",
+        "mosaic.multimodal.vision",
+        "mosaic.multimodal.adapter_mixin",
         "mosaic.audit.ark_ledger",
     ]
     failed = []

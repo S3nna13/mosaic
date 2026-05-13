@@ -22,7 +22,9 @@ class SinaiRegisters(nn.Module):
         self.n_registers = config.n_registers
         self.d_model = config.d_model
         # Learnable register embeddings tied to batch dimension
-        self.register = nn.Parameter(torch.randn(1, config.n_registers, config.d_model) * 0.02)
+        self.register = nn.Parameter(
+            torch.randn(1, config.n_registers, config.d_model) * 0.02
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: [bsz, seqlen, d_model]
@@ -41,7 +43,9 @@ class SinaiRegisters(nn.Module):
         """
         return hidden_states[:, : self.n_registers, :]
 
-    def update(self, hidden_states: torch.Tensor, new_values: torch.Tensor) -> torch.Tensor:
+    def update(
+        self, hidden_states: torch.Tensor, new_values: torch.Tensor
+    ) -> torch.Tensor:
         """Replace register embeddings in hidden states (in-place friendly copy)."""
         updated = hidden_states.clone()
         updated[:, : self.n_registers, :] = new_values

@@ -1,4 +1,5 @@
 """Adaptive guardrail tuner — threshold adjustment based on false-positive rate."""
+
 from __future__ import annotations
 
 from mosaic.guardrails.tuner import GuardrailTuner, TunerConfig
@@ -8,15 +9,16 @@ def test_tuner_increases_threshold_on_high_fp_rate():
     tuner = GuardrailTuner(
         config=TunerConfig(
             rail_name="pii",
-            target_fp_rate=0.1,     # want ≤10% false positives
+            target_fp_rate=0.1,  # want ≤10% false positives
             adjustment_step=0.05,
             min_threshold=0.1,
             max_threshold=0.9,
         )
     )
     # Historical FP rate = 0.4 (40% of non-PII texts flagged → too sensitive)
-    history = [{"passed": False, "was_false_positive": True} for _ in range(40)] + \
-              [{"passed": True}] * 60  # 40% FP, 60% TN
+    history = [{"passed": False, "was_false_positive": True} for _ in range(40)] + [
+        {"passed": True}
+    ] * 60  # 40% FP, 60% TN
     new_threshold = tuner.compute_new_threshold(history)
     # Too many FPs → threshold should go up (reduce sensitivity)
     assert new_threshold > tuner.config.initial_threshold
@@ -33,8 +35,9 @@ def test_tuner_decreases_threshold_on_low_fp_rate():
         )
     )
     # Low FP rate = 2% → could be more sensitive to catch more true positives
-    history = [{"passed": False, "was_false_positive": True} for _ in range(2)] + \
-              [{"passed": True}] * 98
+    history = [{"passed": False, "was_false_positive": True} for _ in range(2)] + [
+        {"passed": True}
+    ] * 98
     new_threshold = tuner.compute_new_threshold(history)
     # Low FP → threshold should go down (more sensitive)
     assert new_threshold < tuner.config.initial_threshold

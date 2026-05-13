@@ -1,4 +1,5 @@
 """Guardrail engine — pipeline, severity routing, auto-escalation decisions."""
+
 from __future__ import annotations
 
 from mosaic.guardrails.engine import Guardrail, GuardrailPipeline, GuardrailResult
@@ -6,6 +7,7 @@ from mosaic.guardrails.engine import Guardrail, GuardrailPipeline, GuardrailResu
 
 class DummyRail(Guardrail):
     """Test rail — returns configured outcome."""
+
     is_input = True
     is_output = False
 
@@ -17,11 +19,21 @@ class DummyRail(Guardrail):
 
 
 def test_pipeline_short_circuits_on_critical():
-    pipeline = GuardrailPipeline([
-        DummyRail(GuardrailResult(name="rail1", passed=False, score=0.9, severity="info")),
-        DummyRail(GuardrailResult(name="rail2", passed=False, score=1.0, severity="critical")),
-        DummyRail(GuardrailResult(name="rail3", passed=True, score=0.0, severity="info")),  # should be skipped
-    ])
+    pipeline = GuardrailPipeline(
+        [
+            DummyRail(
+                GuardrailResult(name="rail1", passed=False, score=0.9, severity="info")
+            ),
+            DummyRail(
+                GuardrailResult(
+                    name="rail2", passed=False, score=1.0, severity="critical"
+                )
+            ),
+            DummyRail(
+                GuardrailResult(name="rail3", passed=True, score=0.0, severity="info")
+            ),  # should be skipped
+        ]
+    )
 
     results = pipeline.check_input("test")
     # Critical failure should prevent later rails (if short-circuit implemented)
@@ -33,8 +45,14 @@ def test_pipeline_short_circuits_on_critical():
 def test_default_input_pipeline_has_required_rails():
     pipeline = GuardrailPipeline.default_input()
     rail_names = [r.__name__ for r in pipeline._instances]
-    expected = ["JailbreakDetector", "PromptInjectionDetector", "ToxicityGuardrail",
-                "PIIDetector", "SecretsScanner", "ContextWindowGuard"]
+    expected = [
+        "JailbreakDetector",
+        "PromptInjectionDetector",
+        "ToxicityGuardrail",
+        "PIIDetector",
+        "SecretsScanner",
+        "ContextWindowGuard",
+    ]
     for name in expected:
         assert name in rail_names
 
@@ -42,8 +60,13 @@ def test_default_input_pipeline_has_required_rails():
 def test_default_output_pipeline_has_required_rails():
     pipeline = GuardrailPipeline.default_output()
     rail_names = [r.__name__ for r in pipeline._instances]
-    expected = ["HallucinationDetector", "FactualConsistency",
-                "OutputValidator", "StructuredOutputValidator", "DoSProtectionGuard"]
+    expected = [
+        "HallucinationDetector",
+        "FactualConsistency",
+        "OutputValidator",
+        "StructuredOutputValidator",
+        "DoSProtectionGuard",
+    ]
     for name in expected:
         assert name in rail_names
 

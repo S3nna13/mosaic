@@ -12,10 +12,7 @@ class OutputValidator(Guardrail):
     name = "output_safety"
     is_output = True
 
-    SAFE_PATTERNS = (
-        (r"I cannot", 1.0),
-        (r"I'm unable", 1.0)
-    )
+    SAFE_PATTERNS = ((r"I cannot", 1.0), (r"I'm unable", 1.0))
 
     async def check(self, text: str, context: str | None = None) -> GuardrailResult:
         # Basic keyword-based output filtering
@@ -60,7 +57,9 @@ class StructuredOutputValidator(Guardrail):
             name=self.name,
             passed=passed,
             score=len(missing) / max(len(required), 1),
-            reason=f"Missing required fields: {', '.join(missing)}" if missing else None,
+            reason=(
+                f"Missing required fields: {', '.join(missing)}" if missing else None
+            ),
             severity="warning",
         )
 

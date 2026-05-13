@@ -1,4 +1,5 @@
 """Base adapter — all provider implementations derive from this."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -10,7 +11,7 @@ from mosaic.multimodal.vision import ImageInput
 
 @dataclass
 class Message:
-    role: str          # "user" | "assistant" | "system"
+    role: str  # "user" | "assistant" | "system"
     content: str
     images: list[ImageInput] | None = None
 
@@ -27,8 +28,7 @@ class BaseAdapter(ABC):
     name: str = "base"
 
     @abstractmethod
-    def chat(self, messages: list[Message], **kwargs) -> ModelResponse:
-        ...
+    def chat(self, messages: list[Message], **kwargs) -> ModelResponse: ...
 
     def list_models(self) -> list[str]:
         return []
@@ -39,6 +39,7 @@ class BaseAdapter(ABC):
 
 class CircuitBreaker:
     """Simple CB: allow N failures within window, then open for recovery-time."""
+
     def __init__(self, max_failures: int = 3, recovery_timeout: float = 30.0):
         self.max_failures = max_failures
         self.recovery_timeout = recovery_timeout
@@ -48,6 +49,7 @@ class CircuitBreaker:
 
     def call(self, fn):
         import time
+
         if self.state == "open":
             if time.time() - self.last_failure > self.recovery_timeout:
                 self.state = "half-open"

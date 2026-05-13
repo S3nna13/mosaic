@@ -7,8 +7,17 @@ from typing import ClassVar
 from .engine import Guardrail, GuardrailResult
 
 TOXIC_KEYWORDS = [
-    "hate", "kill yourself", "murder", "bomb", "terrorist", "racist",
-    "sexist", "bigot", "fuck you", "die", "worthless",
+    "hate",
+    "kill yourself",
+    "murder",
+    "bomb",
+    "terrorist",
+    "racist",
+    "sexist",
+    "bigot",
+    "fuck you",
+    "die",
+    "worthless",
 ]
 
 

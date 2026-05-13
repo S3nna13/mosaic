@@ -4,6 +4,7 @@ Usage:
   class OpenAIVisionAdapter(MultiModalAdapter, OpenAIAdapter):
       pass
 """
+
 from __future__ import annotations
 
 from mosaic.adapters.base import BaseAdapter
@@ -21,22 +22,21 @@ class MultiModalAdapter(BaseAdapter):
             if isinstance(m, MultiModalMessage):
                 parts = [{"type": "text", "text": m.content}]
                 for img in m.images or []:
-                    parts.append({
-                        "type": "image_url",
-                        "image_url": {"url": img.source}
-                    })
+                    parts.append(
+                        {"type": "image_url", "image_url": {"url": img.source}}
+                    )
                 result.append({"role": m.role, "content": parts})
-            elif hasattr(m, 'images') and m.images:
+            elif hasattr(m, "images") and m.images:
                 # Handle base Message with images field
                 parts = [{"type": "text", "text": m.content}]
                 for img in m.images or []:
-                    parts.append({
-                        "type": "image_url",
-                        "image_url": {"url": img.source}
-                    })
+                    parts.append(
+                        {"type": "image_url", "image_url": {"url": img.source}}
+                    )
                 result.append({"role": m.role, "content": parts})
             else:
                 result.append({"role": m.role, "content": m.content})
         return result
+
 
 __all__ = ["MultiModalAdapter"]

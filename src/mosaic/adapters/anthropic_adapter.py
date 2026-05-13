@@ -1,4 +1,5 @@
 """Anthropic adapter — Claude API backend."""
+
 from __future__ import annotations
 
 from anthropic import Anthropic, APIError, RateLimitError
@@ -24,10 +25,16 @@ class AnthropicAdapter(BaseAdapter):
                 if m.images:
                     blocks = []
                     for img in m.images:
-                        blocks.append({
-                            "type": "image",
-                            "source": {"type": "base64", "media_type": img.mime_type, "data": "..."}  # base64 requires conversion
-                        })
+                        blocks.append(
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": img.mime_type,
+                                    "data": "...",
+                                },  # base64 requires conversion
+                            }
+                        )
                     blocks.append({"type": "text", "text": m.content})
                     formatted.append({"role": m.role, "content": blocks})
                 else:

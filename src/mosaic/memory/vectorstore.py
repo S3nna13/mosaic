@@ -3,6 +3,7 @@
 Uses Chroma (persistent) if available; falls back to NumPy-based FAISS-style store.
 Enables retrieval of semantically similar memories beyond Exodus' linear LRU.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -15,9 +16,11 @@ import numpy as np
 # Optional: Chroma for persistent vector DB
 try:
     import chromadb
+
     HAVE_CHROMA = True
 except ImportError:
     HAVE_CHROMA = False
+
 
 # Cosine similarity helper
 def cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
@@ -36,7 +39,13 @@ class VecEntry:
 
 class VectorStore:
     """Semantic memory over Exodus Archive entries."""
-    def __init__(self, store_path: str = ".mosaic/vectorstore", use_chroma: bool = True, dimension: int = 2048):
+
+    def __init__(
+        self,
+        store_path: str = ".mosaic/vectorstore",
+        use_chroma: bool = True,
+        dimension: int = 2048,
+    ):
         self.store_path = Path(store_path)
         self.store_path.mkdir(parents=True, exist_ok=True)
         self.dimension = dimension
@@ -45,7 +54,9 @@ class VectorStore:
 
         if use_chroma and HAVE_CHROMA:
             self.client = chromadb.PersistentClient(path=str(self.store_path))
-            self.collection = self.client.get_or_create_collection(name="exodus_archive")
+            self.collection = self.client.get_or_create_collection(
+                name="exodus_archive"
+            )
             self._backend = "chroma"
         else:
             # Simple NumPy backend — load from disk if present
@@ -65,7 +76,7 @@ class VectorStore:
                     id=eid,
                     text=texts[i],
                     embedding=embeddings[i],
-                    metadata=metas.get(eid, {})
+                    metadata=metas.get(eid, {}),
                 )
             self._embeddings = embeddings
         else:
@@ -99,11 +110,18 @@ class VectorStore:
     def add(self, text: str, metadata: dict | None = None) -> str:
         eid = hashlib.sha1(text.encode()).hexdigest()[:16]
         embedding = self._embed(text)
-        entry = VecEntry(id=eid, text=text, embedding=embedding, metadata=metadata or {})
+        entry = VecEntry(
+            id=eid, text=text, embedding=embedding, metadata=metadata or {}
+        )
         self.entries[eid] = entry
 
         if self._backend == "chroma":
-            self.collection.add(ids=[eid], embeddings=[embedding.tolist()], documents=[text], metadatas=[metadata or {}])
+            self.collection.add(
+                ids=[eid],
+                embeddings=[embedding.tolist()],
+                documents=[text],
+                metadatas=[metadata or {}],
+            )
         else:
             # NumPy backend — append to matrix
             if self._embeddings is None:
@@ -116,14 +134,27 @@ class VectorStore:
     def search(self, query: str, top_k: int = 5) -> list[tuple[str, float, str]]:
         q_emb = self._embed(query)
         if self._backend == "chroma":
-            results = self.collection.query(query_embeddings=[q_emb.tolist()], n_results=top_k)
-            return list(zip(results["ids"][0], results["distances"][0], results["documents"][0], strict=True))
+            results = self.collection.query(
+                query_embeddings=[q_emb.tolist()], n_results=top_k
+            )
+            return list(
+                zip(
+                    results["ids"][0],
+                    results["distances"][0],
+                    results["documents"][0],
+                    strict=True,
+                )
+            )
         if self._embeddings is None or len(self.entries) == 0:
             return []
-        sims = np.dot(self._embeddings, q_emb) / (np.linalg.norm(self._embeddings, axis=1) * np.linalg.norm(q_emb) + 1e-8)
+        sims = np.dot(self._embeddings, q_emb) / (
+            np.linalg.norm(self._embeddings, axis=1) * np.linalg.norm(q_emb) + 1e-8
+        )
         top_indices = np.argsort(-sims)[:top_k]
         ids = list(self.entries.keys())
-        return [(ids[i], float(sims[i]), self.entries[ids[i]].text) for i in top_indices]
+        return [
+            (ids[i], float(sims[i]), self.entries[ids[i]].text) for i in top_indices
+        ]
 
     def delete(self, eid: str) -> bool:
         if eid not in self.entries:
@@ -142,5 +173,6 @@ class VectorStore:
             self._embeddings = None
             return
         self._embeddings = np.stack([e.embedding for e in self.entries.values()])
+
 
 __all__ = ["VecEntry", "VectorStore"]

@@ -16,6 +16,7 @@ class SafetyTier(StrEnum):
 @dataclass
 class AlignmentResult:
     """Structured alignment gate outcome."""
+
     approved: bool
     modified_response: str | None
     violations: list[str]

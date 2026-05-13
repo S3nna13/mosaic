@@ -1,4 +1,5 @@
 """MOSAIC core model — transformer + memory-native architecture."""
+
 from __future__ import annotations
 
 # Import errors are helpful: they guide dependency installation
