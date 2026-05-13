@@ -35,7 +35,13 @@ class GuardrailPipeline:
     """Sequential orchestration of multiple guardrails."""
 
     def __init__(self, rails: list[type[Guardrail]]):
-        self._instances = [r() for r in rails]
+        instances = []
+        for r in rails:
+            if isinstance(r, type):
+                instances.append(r())
+            else:
+                instances.append(r)
+        self._instances = instances
 
     async def check_input(self, text: str) -> list[GuardrailResult]:
         results = [
