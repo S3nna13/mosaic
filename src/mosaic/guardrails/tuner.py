@@ -101,3 +101,43 @@ class AdaptiveGuardrailTuner:
             }
             for name, stats in self._stats.items()
         }
+
+
+@dataclass
+class TunerConfig:
+    """Configuration for a single rail's threshold adjustment."""
+    rail_name: str
+    target_fp_rate: float = 0.05
+    adjustment_step: float = 0.02
+    min_threshold: float = 0.05
+    max_threshold: float = 0.95
+    initial_threshold: float = 0.3
+
+
+class GuardrailTuner:
+    """Stateless tuner — computes new threshold from history + config."""
+
+    def __init__(self, config: TunerConfig):
+        self.config = config
+
+    def compute_new_threshold(self, history: list[dict]) -> float:
+        """
+        history: list of decision records. Each record contains:
+          - passed: bool  (True=allowed, False=blocked)
+          - was_false_positive: bool  (True=blocked incorrectly, False=correct block)
+        Returns adjusted threshold (clipped to config bounds).
+        """
+        # Consider only blocked items for FP rate
+        blocked = [h for h in history if not h.get("passed")]
+        if not blocked:
+            return self.config.initial_threshold
+
+        fp_count = sum(1 for h in blocked if h.get("was_false_positive"))
+        fp_rate = fp_count / len(blocked)
+
+        # Simple proportional adjustment
+        error = fp_rate - self.config.target_fp_rate
+        adjustment = self.config.adjustment_step * error
+
+        new_threshold = self.config.initial_threshold + adjustment
+        return max(self.config.min_threshold, min(self.config.max_threshold, new_threshold))
