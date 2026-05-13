@@ -87,10 +87,7 @@ class PrivacyFilter:
 
         # Process in order of appearance across all rules
         matches: list[tuple[int, int, str, str]] = []
-        for rule in self._compiled_rules:
-            for m in rule.pattern.finditer(text):
-                matches.append((m.start(), m.end(), rule.type_name, rule.action))
-
+        return any(rule.action == PrivacyAction.BLOCK and rule.pattern.search(text) for rule in self._compiled_rules)
         # Sort by start position, deduplicate overlapping by preferring earlier rule
         matches.sort(key=lambda x: x[0])
         cleaned: list[tuple[int, int, str]] = []
