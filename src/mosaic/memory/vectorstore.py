@@ -15,7 +15,6 @@ import numpy as np
 # Optional: Chroma for persistent vector DB
 try:
     import chromadb
-    from chromadb.config import Settings as ChromaSettings
     HAVE_CHROMA = True
 except ImportError:
     HAVE_CHROMA = False
@@ -42,7 +41,7 @@ class VectorStore:
         self.store_path.mkdir(parents=True, exist_ok=True)
         self.dimension = dimension
         self.entries: dict[str, VecEntry] = {}
-        self._embeddings: np.ndarray | None = None  # stacked array N×d
+        self._embeddings: np.ndarray | None = None  # stacked array Nbyd
 
         if use_chroma and HAVE_CHROMA:
             self.client = chromadb.PersistentClient(path=str(self.store_path))
