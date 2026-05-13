@@ -150,7 +150,6 @@ class SafeToolRunner:
     def prepare_command(self, command: str | list[str]) -> str:
         """Validate and normalize a command without executing it."""
         cmd_str = " ".join(command) if isinstance(command, list) else command.strip()
-            cmd_str = command.strip()
 
         # Allowed tools check
         if self.allowed_tools:
