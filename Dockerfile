@@ -1,4 +1,4 @@
-# Single-stage build — simple, reliable
+# Single-stage build
 FROM python:3.12-slim
 
 LABEL org.opencontainers.image.title="MOSAIC"
@@ -8,14 +8,17 @@ LABEL org.opencontainers.image.licenses="Apache-2.0"
 
 WORKDIR /app
 
-# System deps in one line to avoid continuation issues
-RUN apt-get update && apt-get install -y --no-install-recommends gcc g++ make git curl ca-certificates libssl-dev libffi-dev && rm -rf /var/lib/apt/lists/*
+# System deps: compilers + Python headers for C extensions + crypto libs
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ make python3-dev curl ca-certificates \
+    libssl-dev libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy project
 COPY . .
 
-# Install package + all extras
-RUN pip install --upgrade pip hatchling && pip install -e ".[all]"
+# Install package + all extras (no cache to keep image small)
+RUN pip install --upgrade pip hatchling && \
+    pip install --no-cache-dir -e ".[all]"
 
 # Non-root user
 RUN useradd --create-home --uid 1000 mosaic && chown -R mosaic:mosaic /app
