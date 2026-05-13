@@ -50,17 +50,15 @@ else:
     ToolHarness = None
 
 __all__ = [
-    "AgentSession",
     "ALL_RAILS",
+    "AgentSession",
     "AnthropicAdapter",
     "ArkLedger",
     "AuditLedger",
-    "cli_main",
     "ComputePolicy",
     "ConstitutionalRegistry",
     "CovenantAlignment",
     "ExodusMemory",
-    "fastapi_app",
     "GuardrailPipeline",
     "InferenceMode",
     "LocalAdapter",
@@ -74,4 +72,6 @@ __all__ = [
     "StaffDecoder",
     "ToolHarness",
     "VerifierHead",
+    "cli_main",
+    "fastapi_app",
 ]
