@@ -129,7 +129,7 @@ class StaffDecoder:
             mode = InferenceMode.FAST
 
         # Step 4 - Memory tensors
-        exodus_scratch = exodus_episode = exodus_archive = None
+        _exodus_scratch = _exodus_episode = _exodus_archive = None
         if self.local_model:
             # placeholder — would tokenise recent turns here
             pass
