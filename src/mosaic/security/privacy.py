@@ -40,12 +40,12 @@ class PrivacyRule:
     description: str
 
 
-
 @dataclass
 class PrivacyHit:
     entity_type: str
     span: tuple[int, int]
     sample: str
+
 
 @dataclass
 class PrivacyScanResult:
@@ -53,12 +53,17 @@ class PrivacyScanResult:
     redacted_text: str
     action: PrivacyAction
 
+
 class PrivacyFilter:
     """Detect and handle PII / secrets in text."""
 
     _compiled_rules: list[PrivacyRule]
 
-    def __init__(self, default_action: PrivacyAction = PrivacyAction.REDACT, min_confidence: float = 1.0):
+    def __init__(
+        self,
+        default_action: PrivacyAction = PrivacyAction.REDACT,
+        min_confidence: float = 1.0,
+    ):
         self.default_action = default_action
         self.min_confidence = min_confidence
         self._compiled_rules = self._build_rules()
