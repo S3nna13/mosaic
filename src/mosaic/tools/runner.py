@@ -12,6 +12,7 @@ Adapted from CERBERUS tool_runner.py patterns. Features:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import fnmatch
 import ipaddress
 import os
@@ -268,10 +269,8 @@ class SafeToolRunner:
                 "tool_timeout", tool=tool_name, timeout=timeout or self.default_timeout
             )
             # Kill process to ensure cleanup
-            try:
+            with contextlib.suppress(Exception):
                 proc.kill()
-            except Exception:
-                pass
             raise SecurityError("command timed out")
         except Exception as e:
             completed = datetime.now(UTC)
