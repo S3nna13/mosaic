@@ -1,9 +1,9 @@
 """ConstitutionalRegistry — nine hard/soft/gate constraints."""
 
 from __future__ import annotations
-from typing import ClassVar
 
 from dataclasses import dataclass
+from typing import ClassVar
 
 from .objectives import AlignmentObjective
 
