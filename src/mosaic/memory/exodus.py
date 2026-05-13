@@ -109,17 +109,20 @@ class ExodusMemoryStore:
 
     def __init__(
         self,
-        scratch_cap: int = 512,
-        episode_cap: int = 4096,
-        archive_cap: int = 8192,
+        scratch_capacity: int = 512,
+        episode_capacity: int = 4096,
+        archive_capacity: int = 8192,
         persist_path: str | None = None,
     ):
         if hasattr(self, "_initialized") and self._initialized:
             return
-        self.scratch = TierBuffer(scratch_cap, Tier.SCRATCH)
-        self.episode = TierBuffer(episode_cap, Tier.EPISODE)
-        self.archive = TierBuffer(archive_cap, Tier.ARCHIVE)
-        self.persist_path = persist_path
+        self.scratch = TierBuffer(scratch_capacity, Tier.SCRATCH)
+        self.episode = TierBuffer(episode_capacity, Tier.EPISODE)
+        self.archive = TierBuffer(archive_capacity, Tier.ARCHIVE)
+        if enable_persistence:
+            self.persist_path = persist_path or "./exodus_memory.db"
+        else:
+            self.persist_path = None
         self._db: sqlite3.Connection | None = None
         self._init_db()
         self._initialized = True
