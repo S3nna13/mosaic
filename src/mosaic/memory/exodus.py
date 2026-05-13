@@ -315,7 +315,6 @@ class ExodusMemoryStore:
             "archive": len(self.archive._buffer),
         }
 
-
     # ── Test/Convenience API ────────────────────────────────────────────────────
     def size(self, tier: Tier) -> int:
         """Return number of entries in the given tier."""
@@ -400,11 +399,15 @@ class ExodusMemoryStore:
     @property
     def _scratch_queue(self):
         """List of SCRATCH entries sorted by priority desc (highest first)."""
-        return sorted(self.scratch._buffer.values(), key=lambda e: e.priority, reverse=True)
+        return sorted(
+            self.scratch._buffer.values(), key=lambda e: e.priority, reverse=True
+        )
 
     @property
     def _episode_queue(self):
-        return sorted(self.episode._buffer.values(), key=lambda e: e.priority, reverse=True)
+        return sorted(
+            self.episode._buffer.values(), key=lambda e: e.priority, reverse=True
+        )
 
 
 class SinaiRegisters(nn.Module):
