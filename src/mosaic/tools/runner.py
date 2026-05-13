@@ -57,6 +57,17 @@ _SECRET_PATTERNS = (
     "OPENAI_API_KEY",
     "ANTHROPIC_API_KEY",
 )
+
+# Categorized safe-mode checks
+_DESTRUCTIVE_PATTERNS = (
+    "rm -rf /",
+    "rm -rf /*",
+    "> /dev/",
+    "2>/dev/",
+    "| rm ",
+)
+_NETWORK_TOOLS = {"curl", "wget", "telnet", "nc", "netcat", "nmap"}
+
 _SAFE_KEYS = frozenset({"PATH", "HOME", "USER", "LANG", "SHELL", "TERM", "SYSTEMROOT"})
 
 
@@ -172,23 +183,15 @@ class SafeToolRunner:
         if self.allowed_tools and first_token in self.allowed_tools:
             return cmd_str
 
-        # Safe-mode dangerous pattern checks
+        # Safe-mode checks: destructive patterns (SecurityError) and network tool validation (ValidationError)
         if self.safe_mode:
-            dangerous = [
-                "rm -rf /",
-                "rm -rf /*",
-                "> /dev/",
-                "2>/dev/",
-                "| rm ",
-                "curl ",
-                "wget ",
-                "telnet ",
-                "nc ",
-                "netcat ",
-                "nmap ",
-            ]
+            # Network tools: require explicit allow (handled above). If not allowed, block with ValidationError.
+            if first_token in _NETWORK_TOOLS:
+                raise ValidationError("external network targets are not allowed in safe mode")
+
+            # Destructive system-altering patterns
             lowered = cmd_str.lower()
-            for pattern in dangerous:
+            for pattern in _DESTRUCTIVE_PATTERNS:
                 if pattern in lowered:
                     raise SecurityError(
                         f"command contains disallowed pattern: '{pattern}'"
