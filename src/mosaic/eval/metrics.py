@@ -122,3 +122,7 @@ __all__ = [
 
 # Backwards compatibility alias
 JudgeLLM = LLMJudge
+
+# Convenience aliases — class names to PEP8 function-style for direct use
+contains_match = Contains
+exact_match = ExactMatch
