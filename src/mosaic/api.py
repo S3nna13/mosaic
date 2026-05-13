@@ -303,12 +303,12 @@ async def list_tools(layer: str | None = None):
 async def train_sft_endpoint(req: SFTRequest):  # noqa: F821
     """Kick off a Supervised Fine-Tune run using synthetic or provided examples."""
     try:
-        _adapter = build_adapter(
+        _adapter = build_adapter(  # noqa: F821
             provider=req.adapter, model=req.model, api_key=req.api_key
-        )  # noqa: F821
-        gen = SyntheticGenerator(
+        )
+        gen = SyntheticGenerator(  # noqa: F821
             provider=req.adapter, model=req.model, api_key=req.api_key
-        )  # noqa: F821
+        )
         examples = None
         if req.examples:
             examples = [SyntheticExample(**ex) for ex in req.examples]  # noqa: F821
