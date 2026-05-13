@@ -3,15 +3,20 @@ FROM python:3.12-slim AS builder
 
 WORKDIR /src
 COPY . .
-RUN apt-get update && apt-get install -y --no-install-recommends build-essential gcc git && rm -rf /var/lib/apt/lists/*
-RUN pip install --upgrade pip hatchling
-RUN python -m build --wheel --out-dir /dist
-# Pre-install deps into a requirements dir for final image (optional optim)
 
+# Install build system only (no project deps here)
+RUN apt-get update && apt-get install -y --no-install-recommends \\
+    build-essential gcc g++ make git curl ca-certificates \\
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip and install build backend
+RUN pip install --upgrade pip hatchling
+
+# Build wheel WITHOUT installing dependencies (they get installed in runtime stage)
+RUN python -m build --wheel --out-dir /dist --no-deps
 
 # Runtime stage
 FROM python:3.12-slim AS runtime
-ARG MOSAIC_EXTRAS=all
 
 LABEL org.opencontainers.image.title="MOSAIC"
 LABEL org.opencontainers.image.description="Memory-first, defense-in-depth LLM framework"
@@ -19,9 +24,18 @@ LABEL org.opencontainers.image.vendor="MOSAIC Project"
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 
 WORKDIR /app
+
+# Install runtime system deps (for packages like redis, cryptography, etc.)
+RUN apt-get update && apt-get install -y --no-install-recommends \\
+    libssl-dev libffi-dev gcc g++ \\
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy built wheel from builder
 COPY --from=builder /dist/*.whl /wheels/
+
+# Install mosaic with chosen extras (default: all)
 ARG MOSAIC_EXTRAS=all
-RUN pip install --no-cache-dir "/wheels/mosaic-*.whl[${MOSAIC_EXTRAS}]" && rm -rf /wheels
+RUN pip install --no-cache-dir "/wheels/mosaic-*.whl[${MOSAIC_EXTRAS}]"
 
 # Non-root user for security
 RUN useradd --create-home --uid 1000 mosaic && chown -R mosaic:mosaic /app
