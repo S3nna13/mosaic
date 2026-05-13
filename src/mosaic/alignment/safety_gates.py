@@ -86,4 +86,3 @@ __all__ = [
     "SafetyGate",
     "UnsafeMemoryWriteGate",
 ]
-)
