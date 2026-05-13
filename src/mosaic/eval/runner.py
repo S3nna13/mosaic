@@ -52,10 +52,7 @@ def _build_metric(assertion: dict, model: BaseAdapter | None = None) -> Metric:
 
 async def run_eval(config: str | Path | dict, model_override: BaseAdapter | None = None):
 
-    if isinstance(config, (str, Path)):
-        config_obj = load_config(str(config))
-    else:
-        config_obj = config
+    config_obj = load_config(str(config)) if isinstance(config, (str, Path)) else config
 
     # Select model from config or override
     if model_override:
@@ -102,13 +99,6 @@ async def run_eval(config: str | Path | dict, model_override: BaseAdapter | None
 
 
 __all__ = [
-    "Contains",
     "EvalContext",
-    "ExactMatch",
-    "FactualCheck",
-    "LLMJudge",
-    "Metric",
-    "MetricResult",
-    "RegexMatch",
     "run_eval",
 ]
