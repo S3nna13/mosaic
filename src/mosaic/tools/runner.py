@@ -148,6 +148,10 @@ class SafeToolRunner:
         """Add a tool to the denylist (e.g., dangerous system utilities)."""
         self._blocked_tools.add(name)
 
+    def _filter_env(self) -> dict[str, str]:
+        """Return a filtered environment with secrets removed."""
+        return _safe_env()
+
     def prepare_command(self, command: str | list[str]) -> str:
         """Validate and normalize a command without executing it."""
         cmd_str = " ".join(command) if isinstance(command, list) else command.strip()
