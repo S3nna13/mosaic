@@ -10,10 +10,10 @@ from .modes import InferenceMode
 class ComputePolicy:
     """Analyses prompt and selects optimal inference mode + compute path."""
 
-    MATH_KEYWORDS = [
+    MATH_KEYWORDS = (
         "equation", "calculate", "integral", "derivative", "solve", "math",
         "algebra", "geometry", "calculus", "probability", "theorem", "proof",
-    ]
+    )
     CODE_KEYWORDS = [
         "code", "function", "implement", "algorithm", "programming", "class",
         "def ", "import ", "script", "debug", "fix", "refactor", "api",

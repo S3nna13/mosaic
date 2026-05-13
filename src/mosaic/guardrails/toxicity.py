@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from .engine import Guardrail, GuardrailResult
 
-from typing import ClassVar
 TOXIC_KEYWORDS = [
     "hate", "kill yourself", "murder", "bomb", "terrorist", "racist",
     "sexist", "bigot", "fuck you", "die", "worthless",
