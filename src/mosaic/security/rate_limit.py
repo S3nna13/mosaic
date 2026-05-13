@@ -19,7 +19,7 @@ import redis
 from mosaic.core.schema import LimitsConfig
 
 
-class RateLimitExceeded(Exception):
+class RateLimitExceeded(Exception):  # noqa: N818
     def __init__(self, retry_after: float, limit: int, period: float):
         self.retry_after = retry_after
         self.limit = limit
