@@ -45,9 +45,14 @@ class MemoryEntry:
     created_at: float = field(default_factory=time.time)
     expires_at: float | None = None
     metadata: dict[str, object] = field(default_factory=dict)
+    embedding: list[float] | None = None
 
     def is_expired(self) -> bool:
         return self.expires_at is not None and time.time() > self.expires_at
+
+    @property
+    def token_id(self):
+        return self.id
 
 
 class TierBuffer:
@@ -309,6 +314,97 @@ class ExodusMemoryStore:
             "episode": len(self.episode._buffer),
             "archive": len(self.archive._buffer),
         }
+
+
+    # ── Test/Convenience API ────────────────────────────────────────────────────
+    def size(self, tier: Tier) -> int:
+        """Return number of entries in the given tier."""
+        return len(self._get_buffer(tier)._buffer)
+
+    def write(
+        self,
+        token_id,
+        vector: list[float],
+        tier: Tier = Tier.SCRATCH,
+        priority: float | None = None,
+        importance: float | None = None,
+    ) -> str:
+        """Store an embedding vector associated with a token_id."""
+        if importance is not None:
+            priority = importance
+        if priority is None:
+            priority = 0.5
+        entry = MemoryEntry(
+            id=str(token_id),
+            tier=tier,
+            tokens=[],
+            text="",
+            priority=priority,
+            embedding=vector,
+        )
+        buf = self._get_buffer(tier)
+        buf.add(entry)
+        if self.persist_path:
+            self._persist_entry(entry)
+        return entry.id
+
+    def similarity_search(
+        self,
+        query: list[float],
+        k: int = 5,
+        tier: Tier = Tier.ARCHIVE,
+    ) -> list[MemoryEntry]:
+        """Return top-k entries from tier by cosine similarity to query vector."""
+        buf = self._get_buffer(tier)
+        query_arr = [float(x) for x in query]
+        q_norm = (sum(x * x for x in query_arr) ** 0.5) + 1e-8
+        scored = []
+        for entry in buf._buffer.values():
+            if entry.embedding is None:
+                continue
+            vec = entry.embedding
+            norm = (sum(x * x for x in vec) ** 0.5) + 1e-8
+            dot = sum(a * b for a, b in zip(query_arr, vec))
+            score = dot / (q_norm * norm)
+            scored.append((entry, score))
+        scored.sort(key=lambda x: x[1], reverse=True)
+        return [e for e, _ in scored[:k]]
+
+    def consolidate(self, now: float | None = None) -> None:
+        """Move the lowest-importance EPISODE entry to ARCHIVE."""
+        episode_entries = self._get_buffer(Tier.EPISODE).all_entries()
+        if not episode_entries:
+            return
+        # Pick lowest priority; tie-break by creation time (oldest)
+        target = min(episode_entries, key=lambda e: (e.priority, e.created_at))
+        self.consolidate_upwards(target.id, Tier.ARCHIVE)
+
+    def flush(self) -> None:
+        """Commit any pending DB writes."""
+        if self._db is not None:
+            self._db.commit()
+
+    @property
+    def _scratch(self):
+        """Set of MemoryEntry objects in SCRATCH tier."""
+        return set(self.scratch._buffer.values())
+
+    @property
+    def _episode(self):
+        return set(self.episode._buffer.values())
+
+    @property
+    def _archive(self):
+        return set(self.archive._buffer.values())
+
+    @property
+    def _scratch_queue(self):
+        """List of SCRATCH entries sorted by priority desc (highest first)."""
+        return sorted(self.scratch._buffer.values(), key=lambda e: e.priority, reverse=True)
+
+    @property
+    def _episode_queue(self):
+        return sorted(self.episode._buffer.values(), key=lambda e: e.priority, reverse=True)
 
 
 class SinaiRegisters(nn.Module):
