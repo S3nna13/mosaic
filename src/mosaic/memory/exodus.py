@@ -85,15 +85,10 @@ class TierBuffer:
         self._lru.clear()
 
     def _enforce_capacity(self) -> None:
-    while len(self._buffer) > self.capacity:
-        # Evict least-recently-used entry that is still in the buffer
-        while self._lru:
+        while len(self._buffer) > self.capacity:
+            # Evict least-recently-used entry that is still in the buffer
             oldest = self._lru.popleft()
-            if oldest in self._buffer:
-                self._buffer.pop(oldest, None)
-                break
-            # If oldest was already removed (stale), continue to next
-
+            self._buffer.pop(oldest, None)
     def token_tensor(self) -> torch.Tensor:
         """Return concatenated tokens as a 1-D LongTensor."""
         all_toks: list[int] = []
