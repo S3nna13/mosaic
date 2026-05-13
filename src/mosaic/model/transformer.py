@@ -159,7 +159,7 @@ class GQAAttention(nn.Module):
             if exodus_archive is not None:
                 mem_list.append(exodus_archive)
             if mem_list:
-                mem_cat = torch.cat(mem_list, dim=1)  # [B, Mtot, dim]
+                mem_cat = torch.cat(mem_list, dim=1)  # [B, m_tot, dim]
                 km = self.wk(mem_cat).view(B, -1, self.n_kv_heads, self.head_dim)
                 vm = self.wv(mem_cat).view(B, -1, self.n_kv_heads, self.head_dim)
                 km = RotaryEmbedding.apply_rope(km, cos[: km.size(1)], sin[: km.size(1)])
@@ -183,7 +183,7 @@ class GQAAttention(nn.Module):
                 causal_ext = torch.zeros(T, m_tot, device=x.device, dtype=torch.bool)
                 attn_mask = torch.cat([causal_ext, attn_mask], dim=1)  # [T, m_tot+T]
                 # lower-triangular for the (M+T) side
-                attn_mask = torch.triu(torch.ones(T + Mtot, T + Mtot, device=x.device), diagonal=1).bool()
+                attn_mask = torch.triu(torch.ones(T + m_tot, T + m_tot, device=x.device), diagonal=1).bool()
                 # but queries (real tokens) must NOT see *future* real tokens; they CAN see all memory
                 # mask shape: [T_query, K_total]
                 # We'll build it incrementally later; for now keep simple causal for speed.
