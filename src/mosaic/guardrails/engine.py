@@ -81,7 +81,9 @@ class GuardrailPipeline:
     def check_input(self, text: str) -> list[GuardrailResult]:
         return asyncio.run(self._async_check_input(text))
 
-    def check_output(self, text: str, context: str | None = None) -> list[GuardrailResult]:
+    def check_output(
+        self, text: str, context: str | None = None
+    ) -> list[GuardrailResult]:
         return asyncio.run(self._async_check_output(text, context))
 
     # Convenience helpers
