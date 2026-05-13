@@ -2,47 +2,52 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 __version__ = "0.3.0"
 
-# Re-export core symbols for convenience
+# core config always available
 from .model.config import MosaicConfig
 
-try:
-    from .adapters import AnthropicAdapter, LocalAdapter, ModelAdapter, OpenAIAdapter  # type: ignore
-    from .align import ConstitutionalRegistry, CovenantAlignment  # type: ignore
-    from .api import app as fastapi_app  # type: ignore
-    from .audit import ArkLedger as AuditLedger  # type: ignore
-    from .cli import main as cli_main  # type: ignore
-    from .eval import MosaicBenchmark  # type: ignore
-    from .guardrails import ALL_RAILS, GuardrailPipeline  # type: ignore
-    from .inference import ComputePolicy, InferenceMode, StaffDecoder  # type: ignore
-    from .memory import ArkLedger, ExodusMemory, SinaiRegisters  # type: ignore
-    from .model.transformer import MosaicForCausalLM, MosaicTransformer  # type: ignore
-    from .orchestration import AgentSession, ToolHarness  # type: ignore
-except ImportError:
-    # Heavy optional deps (torch) may be missing; expose names anyway
-    MosaicTransformer = None
-    MosaicForCausalLM = None
-    ExodusMemory = None
-    SinaiRegisters = None
-    ArkLedger = None
-    StaffDecoder = None
-    InferenceMode = None
-    ComputePolicy = None
-    CovenantAlignment = None
-    ConstitutionalRegistry = None
-    ModelAdapter = None
-    OpenAIAdapter = None
+if TYPE_CHECKING:
+    # Imported only for static type checking; at runtime these are None placeholders
+    from .adapters import AnthropicAdapter, LocalAdapter, ModelAdapter, OpenAIAdapter
+    from .align import ConstitutionalRegistry, CovenantAlignment
+    from .api import app as fastapi_app
+    from .audit import ArkLedger as AuditLedger
+    from .cli import main as cli_main
+    from .eval import MosaicBenchmark
+    from .guardrails import ALL_RAILS, GuardrailPipeline
+    from .inference import ComputePolicy, InferenceMode, StaffDecoder
+    from .memory import ArkLedger, ExodusMemory, SinaiRegisters
+    from .model.transformer import MosaicForCausalLM, MosaicTransformer
+    from .model.verifier import VerifierHead
+    from .orchestration import AgentSession, ToolHarness
+else:
+    # Runtime placeholders for optional heavy dependencies
     AnthropicAdapter = None
     LocalAdapter = None
-    GuardrailPipeline = None
-    ALL_RAILS = []
+    ModelAdapter = None
+    OpenAIAdapter = None
+    ConstitutionalRegistry = None
+    CovenantAlignment = None
+    fastapi_app = None
     AuditLedger = None
+    cli_main = None
+    MosaicBenchmark = None
+    ALL_RAILS = []
+    GuardrailPipeline = None
+    ComputePolicy = None
+    InferenceMode = None
+    StaffDecoder = None
+    ArkLedger = None
+    ExodusMemory = None
+    SinaiRegisters = None
+    MosaicForCausalLM = None
+    MosaicTransformer = None
+    VerifierHead = None
     AgentSession = None
     ToolHarness = None
-    MosaicBenchmark = None
-    fastapi_app = None
-    cli_main = None
 
 __all__ = [
     "ALL_RAILS",
@@ -65,8 +70,8 @@ __all__ = [
     "SinaiRegisters",
     "StaffDecoder",
     "ToolHarness",
-    "  MosaicBenchmark",
-    "__version__",
-    "  cli_main",
-    "  fastapi_app",
+    "VerifierHead",
+    "MosaicBenchmark",
+    "cli_main",
+    "fastapi_app",
 ]
