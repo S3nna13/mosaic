@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 try:
-    import pydantic
+    import pydantic  # noqa: F401
     HAVE_PYDANTIC = True
 except ImportError:
     HAVE_PYDANTIC = False

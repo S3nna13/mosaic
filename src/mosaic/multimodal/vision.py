@@ -1,5 +1,6 @@
 """Multi-modal vision encoder base + CLIP-style image projector.
 
+import io
 Future: integrate with OpenAI GPT-4o, Claude 3.5 Sonnet vision, or local SigLIP.
 This module provides the contract for image→embedding and image+text→response.
 """
@@ -61,7 +62,7 @@ class CLIPVisionEncoder(VisionEncoder):
 
 class MultiModalMessage:
     """Message that can carry both text and images."""
-    def __init__(self, role: str, content: str, images: List[ImageInput] | None = None):
+    def __init__(self, role: str, content: str, images: list[ImageInput] | None = None):
         self.role = role
         self.content = content
         self.images = images or []
