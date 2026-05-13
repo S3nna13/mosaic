@@ -45,7 +45,8 @@ class MosaicConfig:
     rope_scaling: dict | None = None  # e.g. {"type":"dynamic","factor":2.0}
     use_exodus_cross_attn: bool = True  # inject memory every N layers
     exodus_inject_every: int = 4
-    register_count: int = 16  # number of Sinai learnable tokens
+    n_registers: int = 16  # number of Sinai learnable tokens
+    memory_slots: int = 0  # Exodus memory slots
     dropout: float = 0.1
     bias: bool = False
 
@@ -63,6 +64,12 @@ class MosaicConfig:
         """Backwards-compatible alias for d_model."""
         return self.d_model
 
+
+
+    @property
+    def register_count(self) -> int:
+        """Backwards compatibility alias for n_registers."""
+        return self.n_registers
 
 class RMSNorm(nn.Module):
     """Root-mean-square layer norm (no bias)."""
@@ -136,7 +143,7 @@ class GQAAttention(nn.Module):
         self.wo = nn.Linear(cfg.dim, cfg.dim, bias=cfg.bias)
 
         # Learnable Sinai register embeddings (one vector per register)
-        self.sinai_registers = nn.Parameter(torch.randn(cfg.register_count, cfg.dim))
+        self.sinai_registers = nn.Parameter(torch.randn(cfg.n_registers, cfg.dim))
 
     def forward(
         self,
@@ -295,6 +302,8 @@ class MosaicTransformer(nn.Module):
         self.layers = nn.ModuleList(
             [MosaicTransformerBlock(cfg, i) for i in range(cfg.n_layers)]
         )
+        # Model-level Sinai registers (broadcastable across batch)
+        self.sinai_registers = nn.Parameter(torch.randn(1, cfg.n_registers, cfg.d_model))
         self.output_norm = RMSNorm(cfg.dim)
         self.lm_head = nn.Linear(cfg.dim, cfg.vocab_size, bias=False)
 
@@ -314,15 +323,19 @@ class MosaicTransformer(nn.Module):
         self,
         input_ids: torch.LongTensor,  # [B, T]
         *,
+        memory_context: torch.Tensor | None = None,
         exodus_scratch: torch.Tensor | None = None,
         exodus_episode: torch.Tensor | None = None,
         exodus_archive: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        """Returns *logits* only — sampling performed by StaffDecoder."""
+        """Returns hidden states of shape [B, T, d_model].
+        Optional memory_context is routed as exodus_scratch."""
         _B, T = input_ids.shape  # noqa: N806
         x = self.tok_embeddings(input_ids)
         cos, sin = self.rope(T, device=input_ids.device)
 
+        if memory_context is not None:
+            exodus_scratch = memory_context
         exodus_inputs = (
             (exodus_scratch, exodus_episode, exodus_archive)
             if self.cfg.use_exodus_cross_attn
@@ -333,7 +346,7 @@ class MosaicTransformer(nn.Module):
             x = layer(x, cos, sin, *exodus_inputs)
 
         x = self.output_norm(x)
-        return self.lm_head(x)
+        return x
 
     @torch.no_grad()
     def generate_until_stable(
