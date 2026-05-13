@@ -105,12 +105,7 @@ class ExodusMemoryStore:
 
     # FIXME: make per-instance (not singleton) when multi-tenant
 
-    _instance: ExodusMemoryStore | None = None
 
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
 
     def __init__(
         self,
