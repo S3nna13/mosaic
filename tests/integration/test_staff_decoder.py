@@ -86,7 +86,7 @@ async def test_memory_feedback_loop_triggers_isolation_purge(decoder):
 @pytest.mark.asyncio
 async def test_audit_logging_on_success_and_failure(decoder):
     decoder._config.enable_audit = True
-    result = await decoder.decode([Message(role="user", content="Hello")])
+    _result = await decoder.decode([Message(role="user", content="Hello")])
 
     # Success case logs an action
     decoder._audit.log.assert_called()

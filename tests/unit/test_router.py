@@ -6,6 +6,7 @@ import torch
 from mosaic.inference.router import RedSeaRouter, RouterConfig
 
 
+from unittest.mock import MagicMock
 def test_router_returns_one_of_five_modes():
     cfg = RouterConfig(d_model=64)
     router = RedSeaRouter(cfg)

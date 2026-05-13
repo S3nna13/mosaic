@@ -106,7 +106,7 @@ class Trainer:
 
     def train(self, dataloader, steps: int | None = None) -> None:
         self.model.train()
-        for epoch in range(self.cfg.epochs):
+        for _epoch in range(self.cfg.epochs):
             for batch in dataloader:
                 loss = self.train_step(batch)
                 if self.global_step % 50 == 0:
