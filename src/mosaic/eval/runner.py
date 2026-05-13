@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from mosaic.adapters.base import BaseAdapter
 from mosaic.core.config import load_config
 from mosaic.eval.metrics import Metric, MetricResult
 
 
-from mosaic.adapters.base import BaseAdapter
 class EvalContext:
     def __init__(self, config_path: str | Path, model: BaseAdapter | None = None):
         from mosaic.core.config import load_config
