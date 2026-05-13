@@ -1,5 +1,6 @@
 """Guardrail base types + pipeline orchestration."""
 
+import asyncio
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -43,7 +44,7 @@ class GuardrailPipeline:
                 instances.append(r)
         self._instances = instances
 
-    async def check_input(self, text: str) -> list[GuardrailResult]:
+    async def _async_check_input(self, text: str) -> list[GuardrailResult]:
         results = [
             await r.check(text)
             for r in self._instances
@@ -59,7 +60,7 @@ class GuardrailPipeline:
                     r.mitre_techniques = [t.id for t in techs]
         return results
 
-    async def check_output(
+    async def _async_check_output(
         self, text: str, context: str | None = None
     ) -> list[GuardrailResult]:
         results = [
@@ -75,6 +76,13 @@ class GuardrailPipeline:
                     )
                     r.mitre_techniques = [t.id for t in techs]
         return results
+
+    # Synchronous wrappers for sync contexts
+    def check_input(self, text: str) -> list[GuardrailResult]:
+        return asyncio.run(self._async_check_input(text))
+
+    def check_output(self, text: str, context: str | None = None) -> list[GuardrailResult]:
+        return asyncio.run(self._async_check_output(text, context))
 
     # Convenience helpers
     @staticmethod
