@@ -187,7 +187,9 @@ class SafeToolRunner:
         if self.safe_mode:
             # Network tools: require explicit allow; otherwise block with ValidationError
             if first_token in _NETWORK_TOOLS:
-                raise ValidationError("external network targets are not allowed in safe mode")
+                raise ValidationError(
+                    "external network targets are not allowed in safe mode"
+                )
 
             # Destructive system-altering patterns
             lowered = cmd_str.lower()
@@ -198,7 +200,6 @@ class SafeToolRunner:
                     )
 
         return cmd_str
-
 
     def execute(self, command: list[str], **kwargs) -> ToolResult:
         """Synchronous convenience wrapper around run."""
