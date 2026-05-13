@@ -16,8 +16,8 @@ Features:
 """
 
 from __future__ import annotations
-import contextlib
 
+import contextlib
 import sqlite3
 import time
 import uuid
