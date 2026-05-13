@@ -133,15 +133,60 @@ class SafeToolRunner:
         safe_mode: bool = True,
         default_timeout: float = 30.0,
         max_stdout: int = 100_000,
+        allowed_tools: set[str] | None = None,
     ):
         self.safe_mode = safe_mode
         self.default_timeout = default_timeout
         self.max_stdout = max_stdout
+        self.allowed_tools = allowed_tools or set()
         self._blocked_tools: set[str] = set()
 
     def block_tool(self, name: str) -> None:
         """Add a tool to the denylist (e.g., dangerous system utilities)."""
         self._blocked_tools.add(name)
+
+    def prepare_command(self, command: str | list[str]) -> str:
+        """Validate and normalize a command without executing it."""
+        if isinstance(command, list):
+            cmd_str = " ".join(command)
+        else:
+            cmd_str = command.strip()
+
+        # Allowed tools check
+        if self.allowed_tools:
+            # Extract the base command name (first token)
+            try:
+                first_token = shlex.split(cmd_str)[0]
+            except ValueError:
+                first_token = cmd_str.split()[0] if cmd_str.split() else ""
+            if first_token and first_token not in self.allowed_tools:
+                raise SecurityError(f"tool '{first_token}' disallowed — not in allowed_tools set")
+
+        # Safe-mode dangerous pattern checks
+        if self.safe_mode:
+            dangerous = [
+                "rm -rf /",
+                "rm -rf /*",
+                "> /dev/",
+                "2>/dev/",
+                "| rm ",
+                "curl ",
+                "wget ",
+                "telnet ",
+                "nc ",
+                "netcat ",
+                "nmap ",
+            ]
+            lowered = cmd_str.lower()
+            for pattern in dangerous:
+                if pattern in lowered:
+                    raise SecurityError(f"command contains disallowed pattern: '{pattern}'")
+        return cmd_str
+
+    def execute(self, command: list[str], **kwargs) -> ToolResult:
+        """Synchronous convenience wrapper around run."""
+        tool_name = command[0] if command else ""
+        return asyncio.run(self.run(tool_name, command, **kwargs))
 
     async def run(
         self,
