@@ -17,20 +17,16 @@ import sys
 from pathlib import Path
 
 import click
-import yaml
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
 
-from mosaic.core.config import load_config
-from mosaic.train import SyntheticGenerator, Trainer
-from mosaic.inference.staff_decoder import StaffDecoder, DecodeRequest, InferenceMode
 from mosaic.adapters.base import Message
-from mosaic.guardrails.engine import GuardrailPipeline
-from mosaic.security.privacy import PrivacyFilter
 from mosaic.audit.ark_ledger import get_ledger
+from mosaic.core.config import load_config
+from mosaic.guardrails.engine import GuardrailPipeline
+from mosaic.inference.staff_decoder import DecodeRequest, InferenceMode, StaffDecoder
 from mosaic.tools.registry import registry as tool_registry
-
 
 console = Console()
 
@@ -139,8 +135,9 @@ def serve_cmd(host, port, config, reload):
 @click.option("--output", default="reports/", help="Directory for results")
 def eval_cmd(benchmark, config, output):
     """Run evaluation benchmark."""
-    from mosaic.eval.runner import run_eval
     import asyncio
+
+    from mosaic.eval.runner import run_eval
 
     cfg = load_config(config)
     console.print(f"[bold]Running {benchmark.upper()} evaluation…[/bold]")

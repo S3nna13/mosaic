@@ -1,11 +1,9 @@
 """API integration tests — chat, guard, tools, status, health."""
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
-from mosaic.api import app
-from mosaic.adapters import build_adapter
 
+from mosaic.api import app
 
 client = TestClient(app)
 

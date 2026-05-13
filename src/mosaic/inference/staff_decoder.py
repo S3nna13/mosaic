@@ -10,24 +10,22 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from enum import Enum
-from typing import Optional, List
 
 from mosaic.adapters import build_adapter
-from mosaic.adapters.base import Message, ModelResponse
+from mosaic.adapters.base import Message
+from mosaic.audit.ark_ledger import ActionType, get_ledger
 from mosaic.core.schema import AigisConfig
 from mosaic.guardrails.engine import GuardrailPipeline, GuardrailResult
 from mosaic.inference.router import InferenceMode, heuristic_mode_from_text
 from mosaic.memory.exodus import ExodusMemoryStore, Tier
-from mosaic.model.transformer import MosaicTransformer, MosaicConfig
+from mosaic.model.transformer import MosaicConfig, MosaicTransformer
 from mosaic.security.privacy import PrivacyFilter
-from mosaic.audit.ark_ledger import get_ledger, ActionType
 
 
 @dataclass
 class DecodeRequest:
-    messages: List[Message]
-    mode: Optional[InferenceMode] = None
+    messages: list[Message]
+    mode: InferenceMode | None = None
     max_tokens: int = 1024
     temperature: float = 0.7
     top_p: float = 0.9
@@ -40,8 +38,8 @@ class DecodeResponse:
     content: str
     mode_used: InferenceMode
     stability: float
-    guardrail_report: Optional[List[dict]] = None
-    usage: Optional[dict] = None
+    guardrail_report: list[dict] | None = None
+    usage: dict | None = None
 
 
 class StaffDecoder:
@@ -63,7 +61,7 @@ class StaffDecoder:
 
         # Model: either local Mosaic transformer or external adapter
         if cfg.model.provider in ("local", "mosaic"):
-            self.local_model: Optional[MosaicTransformer] = None
+            self.local_model: MosaicTransformer | None = None
             if cfg.model.path:
                 # TODO: from_pretrained loader
                 self.local_model = MosaicTransformer(MosaicConfig(
@@ -99,7 +97,7 @@ class StaffDecoder:
         self.guardrails_out = GuardrailPipeline.default_output() if cfg.guard.enabled else None
         self.ledger = get_ledger()
 
-    async def decode(self, req: DecodeRequest, session_id: Optional[str] = None) -> DecodeResponse:
+    async def decode(self, req: DecodeRequest, session_id: str | None = None) -> DecodeResponse:
         start = time.time()
         sid = session_id or self.ledger.start_session()
         last_msg = req.messages[-1]
@@ -113,7 +111,7 @@ class StaffDecoder:
             raise PermissionError("Input blocked: sensitive pattern detected")
 
         # Step 2 – Input guardrails
-        input_results: List[GuardrailResult] = []
+        input_results: list[GuardrailResult] = []
         if req.guardrails and self.guardrails:
             input_results = await self.guardrails.check_input(cleaned)
             blocked = [r for r in input_results if not r.passed and r.severity == "critical"]
@@ -166,7 +164,7 @@ class StaffDecoder:
                                details={"reason": "low_stability", "mode": current_mode.value})
 
         # Step 6 – Output guardrails
-        output_results: List[GuardrailResult] = []
+        output_results: list[GuardrailResult] = []
         if req.guardrails and self.guardrails_out:
             output_results = await self.guardrails_out.check_output(content)
 

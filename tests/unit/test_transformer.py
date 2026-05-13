@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import torch
-import pytest
-from mosaic.model.transformer import MosaicTransformer, MosaicConfig
 from mosaic.model.verifier import VerifierHead
+
+from mosaic.model.transformer import MosaicConfig, MosaicTransformer
 
 
 def test_transformer_forward_shape():

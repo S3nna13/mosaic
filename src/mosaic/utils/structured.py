@@ -8,8 +8,7 @@ from __future__ import annotations
 import json
 import logging
 import sys
-from datetime import datetime, timezone
-
+from datetime import UTC, datetime
 
 try:
     import structlog
@@ -46,7 +45,7 @@ def log_event(level: str, event: str, **kwargs):
         method = getattr(logger, level)
         method(event, **kwargs)
     else:
-        payload = {"event": event, "ts": datetime.now(timezone.utc).isoformat(), **kwargs}
+        payload = {"event": event, "ts": datetime.now(UTC).isoformat(), **kwargs}
         logger.log(logging.getLevelName(level.upper()), json.dumps(payload, default=_json_default))
 
 

@@ -1,7 +1,6 @@
 """Adaptive guardrail tuner — threshold adjustment based on false-positive rate."""
 from __future__ import annotations
 
-import pytest
 from mosaic.guardrails.tuner import GuardrailTuner, TunerConfig
 
 

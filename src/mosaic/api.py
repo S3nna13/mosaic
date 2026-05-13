@@ -3,20 +3,18 @@ from __future__ import annotations
 
 import time
 import uuid
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
-
-from mosaic.core.config import load_config
-from mosaic.inference.staff_decoder import StaffDecoder, DecodeRequest
-from mosaic.adapters.base import Message
-from mosaic.security.privacy import PrivacyFilter
-from mosaic.tools.registry import registry as tool_registry
-from mosaic.audit.ark_ledger import get_ledger
 import structlog
+from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from mosaic.adapters.base import Message
+from mosaic.audit.ark_ledger import get_ledger
+from mosaic.core.config import load_config
+from mosaic.inference.staff_decoder import DecodeRequest, StaffDecoder
+from mosaic.tools.registry import registry as tool_registry
 
 logger = structlog.get_logger()
 
@@ -35,7 +33,7 @@ app.add_middleware(
 )
 
 # ── Global state ─────────────────────────────────────────────────────────────
-_decoder: Optional[StaffDecoder] = None
+_decoder: StaffDecoder | None = None
 _metrics = {
     "requests_total": 0,
     "guardrail_blocks": 0,
@@ -56,7 +54,7 @@ def get_decoder() -> StaffDecoder:
 # ── Request / Response models ─────────────────────────────────────────────────
 class ChatRequest(BaseModel):
     messages: list[dict[str, str]]
-    mode: Optional[str] = None
+    mode: str | None = None
     max_tokens: int = 1024
     temperature: float = 0.7
     top_p: float = 0.9
@@ -71,16 +69,16 @@ class ChatResponse(BaseModel):
     stability: float
     request_id: str
     ts: str
-    guardrail_report: Optional[list[dict]] = None
-    usage: Optional[dict] = None
+    guardrail_report: list[dict] | None = None
+    usage: dict | None = None
 
 
 class LoadRequest(BaseModel):
     provider: str = "openai"
-    model: Optional[str] = None
-    api_key: Optional[str] = None
-    path: Optional[str] = None
-    config_path: Optional[str] = "configs/serve/local.yaml"
+    model: str | None = None
+    api_key: str | None = None
+    path: str | None = None
+    config_path: str | None = "configs/serve/local.yaml"
 
 
 class StatusResponse(BaseModel):
@@ -161,7 +159,7 @@ async def chat_endpoint(req: ChatRequest):
         mode_used=resp.mode_used.value,
         stability=resp.stability,
         request_id=str(uuid.uuid4()),
-        ts=datetime.now(timezone.utc).isoformat(),
+        ts=datetime.now(UTC).isoformat(),
         guardrail_report=resp.guardrail_report,
         usage=resp.usage,
     )
@@ -251,8 +249,10 @@ async def startup_event():
 
 
 
-from fastapi.staticfiles import StaticFiles
 from pathlib import Path
+
+from fastapi.staticfiles import StaticFiles
+
 _dashboard_path = Path(__file__).parent.parent / "dashboard"
 if _dashboard_path.exists():
     app.mount("/dashboard", StaticFiles(directory=str(_dashboard_path), html=True), name="dashboard")

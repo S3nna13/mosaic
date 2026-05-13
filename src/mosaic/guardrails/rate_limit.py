@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from .engine import Guardrail, GuardrailResult
 from mosaic.security.rate_limit import RateLimiter
+
+from .engine import Guardrail, GuardrailResult
 
 
 class DoSProtectionGuard(Guardrail):

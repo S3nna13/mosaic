@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+from .input_guard import InputGuard
 from .privacy import PrivacyFilter
 from .rate_limit import RateLimiter
-from .input_guard import InputGuard
 
 __all__ = [
+    "InputGuard",
     "PrivacyFilter",
     "RateLimiter",
-    "InputGuard",
 ]

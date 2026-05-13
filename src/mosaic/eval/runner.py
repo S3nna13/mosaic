@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import yaml
-import re
 from pathlib import Path
 
-from typing import Any
 from mosaic.core.config import load_config
 from mosaic.eval.metrics import Metric, MetricResult
 
@@ -24,7 +21,7 @@ class EvalContext:
         return self.config.get("eval", {}).get("tests", []) or []
 
     def get_metrics(self) -> list[Metric]:
-        from mosaic.eval.metrics import ExactMatch, Contains
+        from mosaic.eval.metrics import Contains, ExactMatch
         metrics = []
         for a in self.config.get("eval", {}).get("assertions", []) or []:
             t = a.get("type")
@@ -38,7 +35,7 @@ class EvalContext:
 
 
 def _build_metric(assertion: dict, model: BaseAdapter | None = None) -> Metric:
-    from mosaic.eval.metrics import ExactMatch, Contains, RegexMatch, LLMJudge, FactualCheck
+    from mosaic.eval.metrics import Contains, ExactMatch, LLMJudge, RegexMatch
     t = assertion.get("type", "exact")
     if t == "exact":
         return ExactMatch()
@@ -53,7 +50,6 @@ def _build_metric(assertion: dict, model: BaseAdapter | None = None) -> Metric:
 
 
 async def run_eval(config: str | Path | dict, model_override: BaseAdapter | None = None):
-    from ..adapters.base import BaseAdapter
 
     if isinstance(config, (str, Path)):
         config_obj = load_config(str(config))
@@ -105,13 +101,13 @@ async def run_eval(config: str | Path | dict, model_override: BaseAdapter | None
 
 
 __all__ = [
+    "Contains",
+    "EvalContext",
+    "ExactMatch",
+    "FactualCheck",
+    "LLMJudge",
     "Metric",
     "MetricResult",
-    "ExactMatch",
-    "Contains",
     "RegexMatch",
-    "LLMJudge",
-    "FactualCheck",
-    "EvalContext",
     "run_eval",
 ]

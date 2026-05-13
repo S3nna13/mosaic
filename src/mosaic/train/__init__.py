@@ -10,14 +10,14 @@ import os
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 import torch
 import torch.nn.functional as F
 
 from mosaic.adapters import build_adapter
 from mosaic.adapters.base import Message
-from mosaic.model.transformer import MosaicTransformer, MosaicConfig
+from mosaic.model.transformer import MosaicConfig, MosaicTransformer
 
 
 # ── Synthetic Data Generation ────────────────────────────────────────────────
@@ -26,7 +26,7 @@ class SyntheticExample:
     instruction: str
     input: str = ""
     output: str = ""
-    metadata: Optional[dict] = None
+    metadata: dict | None = None
 
 
 class SyntheticGenerator:
@@ -38,7 +38,7 @@ class SyntheticGenerator:
         "math": "Create a {difficulty} algebra problem. Then show step-by-step solution.",
     }
 
-    def __init__(self, provider: str = "openai", model: str = "gpt-4o-mini", api_key: Optional[str] = None):
+    def __init__(self, provider: str = "openai", model: str = "gpt-4o-mini", api_key: str | None = None):
         self.adapter = build_adapter(provider=provider, model=model, api_key=api_key)
 
     async def generate(self, template: str, **kwargs) -> SyntheticExample:
@@ -51,7 +51,7 @@ class SyntheticGenerator:
         except Exception:
             return SyntheticExample(instruction=prompt, output=resp.content)
 
-    async def batch(self, n: int, template: str, **kwargs) -> List[SyntheticExample]:
+    async def batch(self, n: int, template: str, **kwargs) -> list[SyntheticExample]:
         return [await self.generate(template, **kwargs) for _ in range(n)]
 
 
@@ -70,7 +70,7 @@ class TrainerConfig:
 
 class Trainer:
     """Simple PyTorch trainer with accumulation + checkpointing."""
-    def __init__(self, model: MosaicTransformer, cfg: TrainerConfig, device: Optional[str] = None):
+    def __init__(self, model: MosaicTransformer, cfg: TrainerConfig, device: str | None = None):
         self.model = model
         self.cfg = cfg
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -82,7 +82,7 @@ class Trainer:
         )
         self.global_step = 0
 
-    def train_step(self, batch: Dict[str, torch.Tensor]) -> float:
+    def train_step(self, batch: dict[str, torch.Tensor]) -> float:
         input_ids = batch["input_ids"].to(self.device)
         labels = batch["labels"].to(self.device)
         logits = self.model(input_ids)
@@ -94,7 +94,7 @@ class Trainer:
         self.global_step += 1
         return loss.item()
 
-    def save_checkpoint(self, path: Optional[str] = None) -> str:
+    def save_checkpoint(self, path: str | None = None) -> str:
         ckpt_dir = Path(self.cfg.checkpoint_dir)
         ckpt_dir.mkdir(parents=True, exist_ok=True)
         path = path or str(ckpt_dir / f"mosaic_step{self.global_step}.pt")
@@ -106,7 +106,7 @@ class Trainer:
         }, path)
         return path
 
-    def train(self, dataloader, steps: Optional[int] = None) -> None:
+    def train(self, dataloader, steps: int | None = None) -> None:
         self.model.train()
         for epoch in range(self.cfg.epochs):
             for batch in dataloader:
@@ -122,7 +122,7 @@ class Trainer:
 # ── RLHF scaffold (GRPO/PPO) ─────────────────────────────────────────────────
 @dataclass
 class RLHFConfig:
-    reward_model_path: Optional[str] = None
+    reward_model_path: str | None = None
     ppo_epochs: int = 4
     kl_coef: float = 0.02
     gamma: float = 0.99
@@ -136,17 +136,20 @@ class RLTrainer:
         self.cfg = cfg
         # Stub: would load/reward model, value net, rollout buffer
 
-    def rollout(self, prompts: List[List[int]]) -> List[Dict[str, Any]]:
+    def rollout(self, prompts: list[list[int]]) -> list[dict[str, Any]]:
         # Generate completions, compute reward, return trajectory
         return []
 
-    def update(self, trajectories: List[Dict[str, Any]]) -> None:
+    def update(self, trajectories: list[dict[str, Any]]) -> None:
         # PPO/GRPO update step
         pass
 
 
 __all__ = [
-    "SyntheticGenerator", "SyntheticExample",
-    "Trainer", "TrainerConfig",
-    "RLTrainer", "RLHFConfig",
+    "RLHFConfig",
+    "RLTrainer",
+    "SyntheticExample",
+    "SyntheticGenerator",
+    "Trainer",
+    "TrainerConfig",
 ]

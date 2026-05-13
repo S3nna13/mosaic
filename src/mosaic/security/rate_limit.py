@@ -13,10 +13,8 @@ from __future__ import annotations
 import os
 import time
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple
 
 import redis
-from pydantic import BaseModel, Field
 
 from mosaic.core.schema import LimitsConfig
 
@@ -39,21 +37,21 @@ class TokenBucket:
 
 class RateLimiter:
     """Sliding-window rate limiter.  Supports per-key (API key / IP)."""
-    def __init__(self, limits: LimitsConfig, redis_url: Optional[str] = None):
+    def __init__(self, limits: LimitsConfig, redis_url: str | None = None):
         self.limits = limits
         self.redis_url = redis_url or os.getenv("MOSAIC_REDIS_URL")
-        self._redis: Optional[redis.Redis] = None
-        self._local: Dict[str, TokenBucket] = {}
+        self._redis: redis.Redis | None = None
+        self._local: dict[str, TokenBucket] = {}
         if self.redis_url:
             self._redis = redis.from_url(self.redis_url, decode_responses=True)
 
-    def check(self, key: str) -> Tuple[bool, float]:
+    def check(self, key: str) -> tuple[bool, float]:
         """Return (allowed, retry_after_seconds)."""
         if self._redis:
             return self._check_redis(key)
         return self._check_local(key)
 
-    def _check_local(self, key: str) -> Tuple[bool, float]:
+    def _check_local(self, key: str) -> tuple[bool, float]:
         now = time.time()
         bucket = self._local.get(key)
         if not bucket:
@@ -75,7 +73,7 @@ class RateLimiter:
         bucket.tokens -= 1.0
         return True, 0.0
 
-    def _check_redis(self, key: str) -> Tuple[bool, float]:
+    def _check_redis(self, key: str) -> tuple[bool, float]:
         """Redis sliding window via sorted set + Lua script for atomicity."""
         lua = """
 local key = KEYS[1]

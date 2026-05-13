@@ -14,18 +14,15 @@ Metrics: accuracy, pass@k, BLEU/ROUGE, toxicity score, refusal rate.
 """
 from __future__ import annotations
 
-import json
-import random
 import statistics
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Protocol
-
-from mosaic.adapters import build_adapter
-from mosaic.adapters.base import Message
-from mosaic.eval.metrics import exact_match, contains_match,JudgeLLM
+from typing import Any
 
 import structlog
+
+from mosaic.adapters.base import Message
+from mosaic.eval.metrics import JudgeLLM, contains_match, exact_match
 
 logger = structlog.get_logger()
 
@@ -34,14 +31,14 @@ logger = structlog.get_logger()
 class Scenario:
     name: str
     description: str
-    samples: List[Dict[str, Any]]
+    samples: list[dict[str, Any]]
     metric: str  # "exact_match", "contains", "llm_judge", "code_exec"
     answer_key: str = "answer"
     prompt_template: str = "{question}"
     max_tokens: int = 256
     temperature: float = 0.0
 
-    def format_prompt(self, sample: Dict[str, Any]) -> str:
+    def format_prompt(self, sample: dict[str, Any]) -> str:
         return self.prompt_template.format(**sample)
 
 
@@ -51,9 +48,9 @@ class ScenarioResult:
     num_samples: int
     metric: str
     score: float
-    details: List[Dict[str, Any]] = field(default_factory=list)
+    details: list[dict[str, Any]] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "scenario": self.scenario,
             "num_samples": self.num_samples,
@@ -68,8 +65,8 @@ class BenchmarkHarness:
     def __init__(self, adapter, scenarios_dir: str = "configs/eval/scenarios"):
         self.adapter = adapter
         self.scenarios_dir = Path(scenarios_dir)
-        self.scenarios: Dict[str, Scenario] = {}
-        self.results: List[ScenarioResult] = []
+        self.scenarios: dict[str, Scenario] = {}
+        self.results: list[ScenarioResult] = []
 
     def load_scenario(self, path: Path) -> Scenario:
         """Load a scenario from a YAML/JSON file."""
@@ -87,7 +84,7 @@ class BenchmarkHarness:
             except Exception as e:
                 logger.warning("scenario_load_failed", path=str(p), error=str(e))
 
-    async def run_scenario(self, scenario: Scenario, limit: Optional[int] = None) -> ScenarioResult:
+    async def run_scenario(self, scenario: Scenario, limit: int | None = None) -> ScenarioResult:
         """Evaluate adapter on a single scenario."""
         samples = scenario.samples if limit is None else scenario.samples[:limit]
         all_scores = []
@@ -123,7 +120,7 @@ class BenchmarkHarness:
         avg_score = statistics.mean(all_scores) if all_scores else 0.0
         return ScenarioResult(scenario.name, len(samples), scenario.metric, avg_score, details)
 
-    async def run_all(self, limit_per: Optional[int] = None) -> Dict[str, Any]:
+    async def run_all(self, limit_per: int | None = None) -> dict[str, Any]:
         """Run every loaded scenario and return aggregated results."""
         self.results = []
         for s in self.scenarios.values():
@@ -142,7 +139,9 @@ class BenchmarkHarness:
 
     def _exec_code_score(self, generated: str, expected: str) -> float:
         """Runs generated code in subprocess and compares stdout to expected."""
-        import subprocess, tempfile, os
+        import os
+        import subprocess
+        import tempfile
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write(generated)
             f.flush()

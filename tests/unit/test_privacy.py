@@ -1,8 +1,7 @@
 """Privacy filter — PII & secret detection across multiple domains."""
 from __future__ import annotations
 
-import pytest
-from mosaic.security.privacy import PrivacyFilter, PrivacyAction
+from mosaic.security.privacy import PrivacyAction, PrivacyFilter
 
 
 def test_email_detection_and_redact():

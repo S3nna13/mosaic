@@ -1,10 +1,7 @@
 """Anthropic adapter — Claude API backend."""
 from __future__ import annotations
 
-from typing import List, Optional
-
-import anthropic
-from anthropic import Anthropic, RateLimitError, APIError
+from anthropic import Anthropic, APIError, RateLimitError
 
 from mosaic.adapters.base import BaseAdapter, Message, ModelResponse
 
@@ -15,11 +12,11 @@ class AnthropicAdapter(BaseAdapter):
     def __init__(self, api_key: str, model: str = "claude-3-5-sonnet-20241022"):
         self.model = model
         self.client = Anthropic(api_key=api_key)
-        self._models_cache: Optional[List[str]] = None
+        self._models_cache: list[str] | None = None
 
-    def chat(self, messages: List[Message], **kwargs) -> ModelResponse:
+    def chat(self, messages: list[Message], **kwargs) -> ModelResponse:
         system_msg = ""
-        formatted: List[dict] = []
+        formatted: list[dict] = []
         for m in messages:
             if m.role == "system":
                 system_msg = m.content
@@ -60,7 +57,7 @@ class AnthropicAdapter(BaseAdapter):
         except APIError as e:
             raise RuntimeError(f"Anthropic API error: {e}") from e
 
-    def list_models(self) -> List[str]:
+    def list_models(self) -> list[str]:
         if self._models_cache is None:
             try:
                 models = self.client.models.list()

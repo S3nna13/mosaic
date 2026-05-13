@@ -1,8 +1,6 @@
 """OpenAI adapter — OpenAI SDK (ChatCompletion) backend."""
 from __future__ import annotations
 
-from typing import List, Optional
-
 import openai
 from openai import OpenAI
 
@@ -12,12 +10,12 @@ from mosaic.adapters.base import BaseAdapter, Message, ModelResponse
 class OpenAIAdapter(BaseAdapter):
     name = "openai"
 
-    def __init__(self, api_key: str, model: str = "gpt-4o-mini", base_url: Optional[str] = None):
+    def __init__(self, api_key: str, model: str = "gpt-4o-mini", base_url: str | None = None):
         self.model = model
         self.client = OpenAI(api_key=api_key, base_url=base_url or "https://api.openai.com/v1")
-        self._models_cache: Optional[List[str]] = None
+        self._models_cache: list[str] | None = None
 
-    def chat(self, messages: List[Message], **kwargs) -> ModelResponse:
+    def chat(self, messages: list[Message], **kwargs) -> ModelResponse:
         oa_messages = []
         for m in messages:
             if m.images:
@@ -54,7 +52,7 @@ class OpenAIAdapter(BaseAdapter):
         except openai.APIError as e:
             raise RuntimeError(f"OpenAI API error: {e}") from e
 
-    def list_models(self) -> List[str]:
+    def list_models(self) -> list[str]:
         if self._models_cache is None:
             try:
                 models = self.client.models.list()

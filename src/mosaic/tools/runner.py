@@ -13,15 +13,11 @@ from __future__ import annotations
 import asyncio
 import fnmatch
 import ipaddress
-import json
 import os
 import shlex
-import subprocess  # nosec B404 — inputs validated, env filtered
-import xml.etree.ElementTree as _ET  # safe-mode parser without entities
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Optional, Dict
+from datetime import UTC, datetime
+from typing import Any
 
 import structlog
 
@@ -44,9 +40,9 @@ _SECRET_PATTERNS = (
 _SAFE_KEYS = frozenset({"PATH", "HOME", "USER", "LANG", "SHELL", "TERM", "SYSTEMROOT"})
 
 
-def _safe_env() -> Dict[str, str]:
+def _safe_env() -> dict[str, str]:
     """Filter os.environ to remove secrets before passing to subprocess."""
-    env: Dict[str, str] = {}
+    env: dict[str, str] = {}
     for k, v in os.environ.items():
         ku = k.upper()
         if ku in _SAFE_KEYS:
@@ -91,9 +87,9 @@ class ToolResult:
     duration_sec: float
     started_at: datetime
     completed_at: datetime
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         return {
             "tool": self.tool,
             "command": self.command,
@@ -124,10 +120,10 @@ class SafeToolRunner:
         tool_name: str,
         command: list[str],
         *,
-        target: Optional[str] = None,
-        stdin: Optional[str] = None,
-        timeout: Optional[float] = None,
-        env: Optional[Dict[str, str]] = None,
+        target: str | None = None,
+        stdin: str | None = None,
+        timeout: float | None = None,
+        env: dict[str, str] | None = None,
     ) -> ToolResult:
         """Execute a tool safely and return its result."""
         if tool_name in self._blocked_tools:
@@ -138,7 +134,7 @@ class SafeToolRunner:
             validate_target(target)
 
         cmd_str = " ".join(shlex.quote(arg) for arg in command)
-        started = datetime.now(timezone.utc)
+        started = datetime.now(UTC)
         proc_env = env or _safe_env()
 
         try:
@@ -153,7 +149,7 @@ class SafeToolRunner:
                 proc.communicate(input=stdin.encode() if stdin else None),
                 timeout=timeout or self.default_timeout,
             )
-            completed = datetime.now(timezone.utc)
+            completed = datetime.now(UTC)
 
             stdout = stdout_bytes.decode(errors="replace")[: self.max_stdout]
             stderr = stderr_bytes.decode(errors="replace")[: self.max_stdout]
@@ -171,8 +167,8 @@ class SafeToolRunner:
             )
             logger.info("tool_executed", tool=tool_name, exit=proc.returncode, duration=result.duration_sec)
             return result
-        except asyncio.TimeoutError:
-            completed = datetime.now(timezone.utc)
+        except TimeoutError:
+            completed = datetime.now(UTC)
             logger.warning("tool_timeout", tool=tool_name, timeout=timeout or self.default_timeout)
             return ToolResult(
                 tool=tool_name,
@@ -186,7 +182,7 @@ class SafeToolRunner:
                 metadata={"error": "timeout"},
             )
         except Exception as e:
-            completed = datetime.now(timezone.utc)
+            completed = datetime.now(UTC)
             logger.error("tool_error", tool=tool_name, error=str(e))
             return ToolResult(
                 tool=tool_name,

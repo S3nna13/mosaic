@@ -13,9 +13,8 @@ here we implement a lightweight heuristic fallback + trainable MLP stub.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Tuple
 
 import torch
 import torch.nn as nn
@@ -95,4 +94,4 @@ def heuristic_mode_from_text(text: str) -> InferenceMode:
     return InferenceMode.FAST
 
 
-__all__ = ["RedSeaRouter", "RouterConfig", "InferenceMode", "heuristic_mode_from_text"]
+__all__ = ["InferenceMode", "RedSeaRouter", "RouterConfig", "heuristic_mode_from_text"]

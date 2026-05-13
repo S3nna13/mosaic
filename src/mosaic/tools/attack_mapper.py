@@ -20,7 +20,6 @@ Mapping categories:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 import structlog
 
@@ -38,10 +37,10 @@ class Technique:
 class MITREMapper:
     """Maps behavior patterns to ATT&CK technique IDs."""
     def __init__(self):
-        self._techniques: Dict[str, Technique] = self._bootstrap_common()
-        self._keyword_map: Dict[str, List[str]] = self._bootstrap_keywords()
+        self._techniques: dict[str, Technique] = self._bootstrap_common()
+        self._keyword_map: dict[str, list[str]] = self._bootstrap_keywords()
 
-    def _bootstrap_common(self) -> Dict[str, Technique]:
+    def _bootstrap_common(self) -> dict[str, Technique]:
         # ~20 most common techniques — can be expanded later
         common = [
             ("T1190", "Exploit Public-Facing Application", "Initial Access"),
@@ -69,7 +68,7 @@ class MITREMapper:
         ]
         return {tid: Technique(tid, name, tactic) for tid, name, tactic in common}
 
-    def _bootstrap_keywords(self) -> Dict[str, List[str]]:
+    def _bootstrap_keywords(self) -> dict[str, list[str]]:
         # Simple keyword → technique mapping for fast lookup
         return {
             "T1190": ["public facing", "web shell", "rce", "remote code", "exploit", "vulnerability"],
@@ -96,16 +95,16 @@ class MITREMapper:
             "T1489": ["stop service", "kill process", "shutdown"],
         }
 
-    def map_finding(self, finding: Dict[str, Any]) -> List[Technique]:
+    def map_finding(self, finding: dict[str, Any]) -> list[Technique]:
         """Given a guardrail/tool finding, return matched ATT&CK techniques."""
         text = f"{finding.get('reason','')} {finding.get('type','')}".lower()
-        matched: List[Technique] = []
+        matched: list[Technique] = []
         for tid, keywords in self._keyword_map.items():
             if any(kw in text for kw in keywords):
                 matched.append(self._techniques[tid])
         return matched
 
-    def map_findings_batch(self, findings: List[Dict[str, Any]]) -> Dict[str, List[Technique]]:
+    def map_findings_batch(self, findings: list[dict[str, Any]]) -> dict[str, list[Technique]]:
         """Batch mapping: { finding_id -> [Techniques] }."""
         results = {}
         for i, f in enumerate(findings):
@@ -113,7 +112,7 @@ class MITREMapper:
             results[fid] = self.map_finding(f)
         return results
 
-    def get_tactic_coverage(self, techniques: List[Technique]) -> Dict[str, int]:
+    def get_tactic_coverage(self, techniques: list[Technique]) -> dict[str, int]:
         """Count techniques per tactic."""
         from collections import Counter
         return dict(Counter(t.tactic for t in techniques))

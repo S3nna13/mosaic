@@ -1,17 +1,17 @@
 """Evaluation suite — benchmarks, metrics, release gates."""
 from __future__ import annotations
 
-from .metrics import Metric, MetricResult, ExactMatch, Contains, RegexMatch
-from .runner import run_eval, EvalContext
 from .benchmark import MosaicBenchmark
+from .metrics import Contains, ExactMatch, Metric, MetricResult, RegexMatch
+from .runner import EvalContext, run_eval
 
 __all__ = [
+    "Contains",
+    "EvalContext",
+    "ExactMatch",
     "Metric",
     "MetricResult",
-    "ExactMatch",
-    "Contains",
+    "MosaicBenchmark",
     "RegexMatch",
     "run_eval",
-    "EvalContext",
-    "MosaicBenchmark",
 ]

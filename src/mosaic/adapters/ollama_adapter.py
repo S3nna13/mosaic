@@ -1,8 +1,6 @@
 """Ollama adapter — local Ollama HTTP server backend."""
 from __future__ import annotations
 
-from typing import List, Optional
-
 import httpx
 
 from mosaic.adapters.base import BaseAdapter, Message, ModelResponse
@@ -16,7 +14,7 @@ class OllamaAdapter(BaseAdapter):
         self.model = model
         self._client = httpx.Client(timeout=60.0)
 
-    def chat(self, messages: List[Message], **kwargs) -> ModelResponse:
+    def chat(self, messages: list[Message], **kwargs) -> ModelResponse:
         ollama_messages = [{"role": m.role, "content": m.content} for m in messages]
         payload = {
             "model": self.model,
@@ -38,7 +36,7 @@ class OllamaAdapter(BaseAdapter):
             raw=data,
         )
 
-    def list_models(self) -> List[str]:
+    def list_models(self) -> list[str]:
         try:
             resp = self._client.get(f"{self.host}/api/tags")
             resp.raise_for_status()

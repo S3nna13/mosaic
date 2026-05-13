@@ -9,7 +9,7 @@ import hashlib
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, List, Optional, Tuple
+
 import numpy as np
 
 # Optional: Chroma for persistent vector DB
@@ -42,7 +42,7 @@ class VectorStore:
         self.store_path.mkdir(parents=True, exist_ok=True)
         self.dimension = dimension
         self.entries: dict[str, VecEntry] = {}
-        self._embeddings: Optional[np.ndarray] = None  # stacked array N×d
+        self._embeddings: np.ndarray | None = None  # stacked array N×d
 
         if use_chroma and HAVE_CHROMA:
             self.client = chromadb.PersistentClient(path=str(self.store_path))
@@ -97,7 +97,7 @@ class VectorStore:
         arr = (arr / 255.0) * 2 - 1
         return arr
 
-    def add(self, text: str, metadata: Optional[dict] = None) -> str:
+    def add(self, text: str, metadata: dict | None = None) -> str:
         eid = hashlib.sha1(text.encode()).hexdigest()[:16]
         embedding = self._embed(text)
         entry = VecEntry(id=eid, text=text, embedding=embedding, metadata=metadata or {})
@@ -114,18 +114,17 @@ class VectorStore:
             self._save_numpy_backend()
         return eid
 
-    def search(self, query: str, top_k: int = 5) -> List[Tuple[str, float, str]]:
+    def search(self, query: str, top_k: int = 5) -> list[tuple[str, float, str]]:
         q_emb = self._embed(query)
         if self._backend == "chroma":
             results = self.collection.query(query_embeddings=[q_emb.tolist()], n_results=top_k)
             return list(zip(results["ids"][0], results["distances"][0], results["documents"][0]))
-        else:
-            if self._embeddings is None or len(self.entries) == 0:
-                return []
-            sims = np.dot(self._embeddings, q_emb) / (np.linalg.norm(self._embeddings, axis=1) * np.linalg.norm(q_emb) + 1e-8)
-            top_indices = np.argsort(-sims)[:top_k]
-            ids = list(self.entries.keys())
-            return [(ids[i], float(sims[i]), self.entries[ids[i]].text) for i in top_indices]
+        if self._embeddings is None or len(self.entries) == 0:
+            return []
+        sims = np.dot(self._embeddings, q_emb) / (np.linalg.norm(self._embeddings, axis=1) * np.linalg.norm(q_emb) + 1e-8)
+        top_indices = np.argsort(-sims)[:top_k]
+        ids = list(self.entries.keys())
+        return [(ids[i], float(sims[i]), self.entries[ids[i]].text) for i in top_indices]
 
     def delete(self, eid: str) -> bool:
         if eid not in self.entries:
@@ -145,4 +144,4 @@ class VectorStore:
             return
         self._embeddings = np.stack([e.embedding for e in self.entries.values()])
 
-__all__ = ["VectorStore", "VecEntry"]
+__all__ = ["VecEntry", "VectorStore"]

@@ -1,10 +1,12 @@
 """StaffDecoder full-routing integration test — auto-escalation, memory, guardrails."""
 from __future__ import annotations
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
-from mosaic.inference.staff_decoder import StaffDecoder, DecodeResult
+
 from mosaic.adapters.base import Message, ModelResponse
+from mosaic.inference.staff_decoder import DecodeResult, StaffDecoder
 
 
 @pytest.fixture

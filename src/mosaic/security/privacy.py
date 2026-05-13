@@ -14,11 +14,10 @@ Action strategies:\n  • REDACT — replace with [REDACTED:<type>]\n  • BLOCK
 
 from __future__ import annotations
 
-import os
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Pattern, Tuple
+from re import Pattern
 
 import structlog
 
@@ -42,14 +41,14 @@ class PrivacyRule:
 
 class PrivacyFilter:
     """Detect and handle PII / secrets in text."""
-    _compiled_rules: List[PrivacyRule]
+    _compiled_rules: list[PrivacyRule]
 
     def __init__(self, default_action: PrivacyAction = PrivacyAction.REDACT):
         self.default_action = default_action
         self._compiled_rules = self._build_rules()
 
-    def _build_rules(self) -> List[PrivacyRule]:
-        rules: List[Tuple[str, str, PrivacyAction, str]] = [
+    def _build_rules(self) -> list[PrivacyRule]:
+        rules: list[tuple[str, str, PrivacyAction, str]] = [
             # ── Personal identifiers ────────────────────────────────────────
             (r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", "email",    PrivacyAction.REDACT, "Email address"),
             (r"\b\d{3}-\d{3}-\d{4}(?:\D|$)",               "phone_us", PrivacyAction.REDACT, "US phone number"),
@@ -77,24 +76,24 @@ class PrivacyFilter:
                 logger.warning("regex_failed", pattern=pat, error=str(e))
         return compiled
 
-    def scan(self, text: str, *, action_override: Optional[PrivacyAction] = None) -> Tuple[str, List[Dict[str, str]]]:
+    def scan(self, text: str, *, action_override: PrivacyAction | None = None) -> tuple[str, list[dict[str, str]]]:
         """Scan text; apply strategy for each match.
 
         Returns: (sanitised_text, findings_list)
         """
-        findings: List[Dict[str, str]] = []
+        findings: list[dict[str, str]] = []
         sanitised = text
         offset = 0  # track replacements so indices stay correct
 
         # Process in order of appearance across all rules
-        matches: List[Tuple[int, int, str, str]] = []
+        matches: list[tuple[int, int, str, str]] = []
         for rule in self._compiled_rules:
             for m in rule.pattern.finditer(text):
                 matches.append((m.start(), m.end(), rule.type_name, rule.action))
 
         # Sort by start position, deduplicate overlapping by preferring earlier rule
         matches.sort(key=lambda x: x[0])
-        cleaned: List[Tuple[int, int, str]] = []
+        cleaned: list[tuple[int, int, str]] = []
         last_end = 0
         for start, end, t, act in matches:
             if start < last_end:

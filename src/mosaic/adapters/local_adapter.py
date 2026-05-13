@@ -1,10 +1,8 @@
 """Local adapter — HuggingFace Transformers or local Mosaic weights."""
 from __future__ import annotations
 
-from typing import List, Optional
-
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from mosaic.adapters.base import BaseAdapter, Message, ModelResponse
 
@@ -24,7 +22,7 @@ class LocalAdapter(BaseAdapter):
 
         if self.use_mosaic:
             # Dynamically import late to avoid circular imports
-            from mosaic.model.transformer import MosaicTransformer, build_transformer_from_config, MosaicConfig
+            from mosaic.model.transformer import build_transformer_from_config
             # Load weights if checkpoint file provided
             self.model = build_transformer_from_config(self._infer_config())
             if model_path:
@@ -43,7 +41,7 @@ class LocalAdapter(BaseAdapter):
         return AigisConfig()
 
     @torch.no_grad()
-    def chat(self, messages: List[Message], **kwargs) -> ModelResponse:
+    def chat(self, messages: list[Message], **kwargs) -> ModelResponse:
         prompt = self._build_prompt(messages)
         inputs = self.tokenizer(prompt, return_tensors="pt", padding=True).to(self.device)
 
@@ -67,7 +65,7 @@ class LocalAdapter(BaseAdapter):
             raw={},
         )
 
-    def _build_prompt(self, messages: List[Message]) -> str:
+    def _build_prompt(self, messages: list[Message]) -> str:
         # ChatML-style: <|user|>…<|assistant|>…
         parts = []
         for m in messages:

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from .engine import Guardrail, GuardrailResult
 
-
 TOXIC_KEYWORDS = [
     "hate", "kill yourself", "murder", "bomb", "terrorist", "racist",
     "sexist", "bigot", "fuck you", "die", "worthless",
@@ -58,4 +57,4 @@ class ToxicityFilter(Guardrail):
         )
 
 
-__all__ = ["ToxicityGuardrail", "ToxicityFilter"]
+__all__ = ["ToxicityFilter", "ToxicityGuardrail"]

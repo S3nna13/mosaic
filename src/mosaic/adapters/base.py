@@ -3,33 +3,34 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from mosaic.multimodal.vision import MultiModalMessage, ImageInput
-from typing import List, Optional, Dict, Any
+from typing import Any
+
+from mosaic.multimodal.vision import ImageInput
 
 
 @dataclass
 class Message:
     role: str          # "user" | "assistant" | "system"
     content: str
-    images: List[ImageInput] | None = None
+    images: list[ImageInput] | None = None
 
 
 @dataclass
 class ModelResponse:
     content: str
     model: str
-    usage: Dict[str, int]
-    raw: Optional[Dict[str, Any]] = None
+    usage: dict[str, int]
+    raw: dict[str, Any] | None = None
 
 
 class BaseAdapter(ABC):
     name: str = "base"
 
     @abstractmethod
-    def chat(self, messages: List[Message], **kwargs) -> ModelResponse:
+    def chat(self, messages: list[Message], **kwargs) -> ModelResponse:
         ...
 
-    def list_models(self) -> List[str]:
+    def list_models(self) -> list[str]:
         return []
 
     def health(self) -> bool:

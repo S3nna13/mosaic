@@ -6,19 +6,20 @@ __version__ = "0.3.0"
 
 # Re-export core symbols for convenience
 from .model.config import MosaicConfig
+
 try:
-    from .model.transformer import MosaicTransformer, MosaicForCausalLM  # type: ignore
-    from .memory import ExodusMemory, SinaiRegisters, ArkLedger  # type: ignore
-    from .inference import StaffDecoder, InferenceMode, ComputePolicy  # type: ignore
-    from .align import CovenantAlignment, ConstitutionalRegistry  # type: ignore
-    from .adapters import OpenAIAdapter, AnthropicAdapter, LocalAdapter, ModelAdapter  # type: ignore
-    from .guardrails import GuardrailPipeline, ALL_RAILS  # type: ignore
-    from .audit import ArkLedger as AuditLedger  # type: ignore
-    from .orchestration import AgentSession, ToolHarness  # type: ignore
-    from .eval import MosaicBenchmark  # type: ignore
+    from .adapters import AnthropicAdapter, LocalAdapter, ModelAdapter, OpenAIAdapter  # type: ignore
+    from .align import ConstitutionalRegistry, CovenantAlignment  # type: ignore
     from .api import app as fastapi_app  # type: ignore
+    from .audit import ArkLedger as AuditLedger  # type: ignore
     from .cli import main as cli_main  # type: ignore
-except ImportError as e:
+    from .eval import MosaicBenchmark  # type: ignore
+    from .guardrails import ALL_RAILS, GuardrailPipeline  # type: ignore
+    from .inference import ComputePolicy, InferenceMode, StaffDecoder  # type: ignore
+    from .memory import ArkLedger, ExodusMemory, SinaiRegisters  # type: ignore
+    from .model.transformer import MosaicForCausalLM, MosaicTransformer  # type: ignore
+    from .orchestration import AgentSession, ToolHarness  # type: ignore
+except ImportError:
     # Heavy optional deps (torch) may be missing; expose names anyway
     MosaicTransformer = None
     MosaicForCausalLM = None
@@ -44,28 +45,28 @@ except ImportError as e:
     cli_main = None
 
 __all__ = [
-    "__version__",
-    "MosaicConfig",
-    "MosaicTransformer",
-    "MosaicForCausalLM",
-    "ExodusMemory",
-    "SinaiRegisters",
-    "ArkLedger",
-    "StaffDecoder",
-    "InferenceMode",
-    "ComputePolicy",
-    "CovenantAlignment",
-    "ConstitutionalRegistry",
-    "ModelAdapter",
-    "OpenAIAdapter",
-    "AnthropicAdapter",
-    "LocalAdapter",
-    "GuardrailPipeline",
     "ALL_RAILS",
-    "AuditLedger",
     "AgentSession",
+    "AnthropicAdapter",
+    "ArkLedger",
+    "AuditLedger",
+    "ComputePolicy",
+    "ConstitutionalRegistry",
+    "CovenantAlignment",
+    "ExodusMemory",
+    "GuardrailPipeline",
+    "InferenceMode",
+    "LocalAdapter",
+    "ModelAdapter",
+    "MosaicConfig",
+    "MosaicForCausalLM",
+    "MosaicTransformer",
+    "OpenAIAdapter",
+    "SinaiRegisters",
+    "StaffDecoder",
     "ToolHarness",
     "  MosaicBenchmark",
-    "  fastapi_app",
+    "__version__",
     "  cli_main",
+    "  fastapi_app",
 ]

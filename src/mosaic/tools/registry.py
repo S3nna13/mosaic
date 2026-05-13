@@ -5,13 +5,14 @@ Tools are classified into layers corresponding to MOSAIC's guardrails and agent 
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
 import json
+from dataclasses import dataclass, field
+from typing import Any
 
-from mosaic.tools.runner import SafeToolRunner, ToolResult
-from mosaic.audit.ark_ledger import get_ledger, ActionType
 import structlog
+
+from mosaic.audit.ark_ledger import ActionType, get_ledger
+from mosaic.tools.runner import SafeToolRunner, ToolResult
 
 logger = structlog.get_logger()
 
@@ -21,15 +22,15 @@ class Tool:
     name: str
     description: str
     layer: str                      # "recon", "vuln", "scan", "defense", "intel", "utility"
-    command_template: List[str]     # e.g. ["nmap", "-sV", "{target}"]
-    parameters: Dict[str, Dict] = field(default_factory=dict)
+    command_template: list[str]     # e.g. ["nmap", "-sV", "{target}"]
+    parameters: dict[str, dict] = field(default_factory=dict)
     # {"arg": {"type": "string", "required": True, "description": "..."}}
-    output_parser: Optional[str] = None  # "json", "yaml", "xml", "lines"
+    output_parser: str | None = None  # "json", "yaml", "xml", "lines"
     safe_mode: bool = True
     timeout: float = 30.0
     allow_stdin: bool = False
 
-    def render(self, **kwargs) -> List[str]:
+    def render(self, **kwargs) -> list[str]:
         """Fill command_template with argument values."""
         cmd = []
         for part in self.command_template:
@@ -44,7 +45,7 @@ class Tool:
 
 class ToolRegistry:
     """Singleton registry of all available tools."""
-    _instance: Optional[ToolRegistry] = None
+    _instance: ToolRegistry | None = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -54,7 +55,7 @@ class ToolRegistry:
     def __init__(self):
         if hasattr(self, "_init") and self._init:
             return
-        self._tools: Dict[str, Tool] = {}
+        self._tools: dict[str, Tool] = {}
         self._runner = SafeToolRunner()
         self._ledger = get_ledger()
         self._load_builtins()
@@ -62,7 +63,7 @@ class ToolRegistry:
 
     def _load_builtins(self) -> None:
         """Populate registry with ~50 built-in tools across layers."""
-        builtins: List[Tool] = [
+        builtins: list[Tool] = [
             # ── Layer 1: Reconnaissance ────────────────────────────────────────
             Tool(
                 name="nmap_quick",
@@ -302,12 +303,12 @@ class ToolRegistry:
     def unregister(self, name: str) -> None:
         self._tools.pop(name, None)
 
-    def list_tools(self, layer: Optional[str] = None) -> List[str]:
+    def list_tools(self, layer: str | None = None) -> list[str]:
         if layer:
             return [t for t, tool in self._tools.items() if tool.layer == layer]
         return list(self._tools.keys())
 
-    def get(self, name: str) -> Optional[Tool]:
+    def get(self, name: str) -> Tool | None:
         return self._tools.get(name)
 
     async def execute(self, name: str, **kwargs) -> ToolResult:
@@ -356,16 +357,15 @@ class ToolRegistry:
     def _parse_output(self, text: str, format: str) -> Any:
         if format == "json":
             return json.loads(text)
-        elif format == "yaml":
+        if format == "yaml":
             import yaml
             return yaml.safe_load(text)
-        elif format == "xml":
+        if format == "xml":
             # Return parsed ElementTree root
             return _ET.fromstring(text)
-        elif format == "lines":
+        if format == "lines":
             return [l for l in text.splitlines() if l.strip()]
-        else:
-            return text  # plain text
+        return text  # plain text
 
 
 # Convenience singleton

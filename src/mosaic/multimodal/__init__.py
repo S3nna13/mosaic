@@ -8,11 +8,11 @@ Exposes:
 """
 from __future__ import annotations
 
-from .vision import VisionEncoder, CLIPVisionEncoder, ImageInput, MultiModalMessage
+from .vision import CLIPVisionEncoder, ImageInput, MultiModalMessage, VisionEncoder
 
 __all__ = [
-    "VisionEncoder",
-    "CLIPVisionEncoder", 
+    "CLIPVisionEncoder",
     "ImageInput",
     "MultiModalMessage",
+    "VisionEncoder",
 ]

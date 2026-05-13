@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import time
+
 import pytest
-from mosaic.memory.exodus import ExodusMemoryStore, Tier, MemoryEntry
+
+from mosaic.memory.exodus import ExodusMemoryStore, Tier
 
 
 @pytest.fixture
@@ -74,7 +76,8 @@ def test_similarity_query_returns_closest():
 
 
 def test_persistence_roundtrip():
-    import tempfile, os
+    import os
+    import tempfile
     with tempfile.TemporaryDirectory() as td:
         db = os.path.join(td, "exodus.db")
         store = ExodusMemoryStore(persist_path=db, enable_persistence=True)

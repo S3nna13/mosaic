@@ -1,8 +1,7 @@
 """Guardrail engine — pipeline, severity routing, auto-escalation decisions."""
 from __future__ import annotations
 
-import pytest
-from mosaic.guardrails.engine import GuardrailPipeline, GuardrailResult, Guardrail, GuardrailEngine
+from mosaic.guardrails.engine import Guardrail, GuardrailPipeline, GuardrailResult
 
 
 class DummyRail(Guardrail):

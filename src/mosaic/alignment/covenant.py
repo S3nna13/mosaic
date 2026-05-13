@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 from .constitutional import ConstitutionalRegistry
-from .safety_gates import GateEnforcer
 from .result import AlignmentResult, SafetyTier
+from .safety_gates import GateEnforcer
 
 
 class CovenantAlignment:
@@ -80,4 +80,4 @@ class CovenantAlignment:
         )
 
 
-__all__ = ["CovenantAlignment", "AlignmentResult", "SafetyTier"]
+__all__ = ["AlignmentResult", "CovenantAlignment", "SafetyTier"]

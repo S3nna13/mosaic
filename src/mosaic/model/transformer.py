@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from typing import Optional, Tuple, List
 
 import torch
 import torch.nn as nn
@@ -41,7 +40,7 @@ class MosaicConfig:
     mlp_ratio: float = 4.0
     max_seq_len: int = 8192
     rope_theta: float = 10000.0
-    rope_scaling: Optional[dict] = None  # e.g. {"type":"dynamic","factor":2.0}
+    rope_scaling: dict | None = None  # e.g. {"type":"dynamic","factor":2.0}
     use_exodus_cross_attn: bool = True  # inject memory every N layers
     exodus_inject_every: int = 4
     register_count: int = 16   # number of Sinai learnable tokens
@@ -81,7 +80,7 @@ class RotaryEmbedding(nn.Module):
         self.dim = dim
         self.max_seq_len = max_seq_len
 
-    def forward(self, seq_len: int, device: torch.device) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, seq_len: int, device: torch.device) -> tuple[torch.Tensor, torch.Tensor]:
         t = torch.arange(seq_len, device=device, dtype=self.inv_freq.dtype)
         freqs = torch.einsum("i,j->ij", t, self.inv_freq)  # [T, dim//2]
         emb = torch.cat((freqs, freqs), dim=-1)  # [T, dim]
@@ -127,9 +126,9 @@ class GQAAttention(nn.Module):
         cos: torch.Tensor,
         sin: torch.Tensor,
         *,  # keyword-only below
-        exodus_scratch: Optional[torch.Tensor] = None,
-        exodus_episode: Optional[torch.Tensor] = None,
-        exodus_archive: Optional[torch.Tensor] = None,
+        exodus_scratch: torch.Tensor | None = None,
+        exodus_episode: torch.Tensor | None = None,
+        exodus_archive: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """x: [B, T, dim].
            exodus_*: [B, TierTokens, dim] — secondary sequences for cross-attn
@@ -152,7 +151,7 @@ class GQAAttention(nn.Module):
         attn_mask = torch.triu(torch.ones(T, T, device=x.device), diagonal=1).bool()
         if exodus_scratch is not None or exodus_episode is not None or exodus_archive is not None:
             # Concatenate memory tiers (if present) to K/V for cross-attn
-            mem_list: List[torch.Tensor] = []
+            mem_list: list[torch.Tensor] = []
             if exodus_scratch is not None:
                 mem_list.append(exodus_scratch)
             if exodus_episode is not None:
@@ -230,9 +229,9 @@ class MosaicTransformerBlock(nn.Module):
         x: torch.Tensor,
         cos: torch.Tensor,
         sin: torch.Tensor,
-        exodus_scratch: Optional[torch.Tensor] = None,
-        exodus_episode: Optional[torch.Tensor] = None,
-        exodus_archive: Optional[torch.Tensor] = None,
+        exodus_scratch: torch.Tensor | None = None,
+        exodus_episode: torch.Tensor | None = None,
+        exodus_archive: torch.Tensor | None = None,
     ) -> torch.Tensor:
         # Attention residual
         r = x
@@ -281,9 +280,9 @@ class MosaicTransformer(nn.Module):
         self,
         input_ids: torch.LongTensor,  # [B, T]
         *,
-        exodus_scratch: Optional[torch.Tensor] = None,
-        exodus_episode: Optional[torch.Tensor] = None,
-        exodus_archive: Optional[torch.Tensor] = None,
+        exodus_scratch: torch.Tensor | None = None,
+        exodus_episode: torch.Tensor | None = None,
+        exodus_archive: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Returns *logits* only — sampling performed by StaffDecoder."""
         B, T = input_ids.shape
@@ -307,7 +306,7 @@ class MosaicTransformer(nn.Module):
         stability_threshold: float = 0.9,
         temperature: float = 0.7,
         top_p: float = 0.9,
-    ) -> Tuple[torch.LongTensor, torch.Tensor]:
+    ) -> tuple[torch.LongTensor, torch.Tensor]:
         """Generate tokens while monitoring verifier stability.
         Returns: (generated_ids [B, T+l], stability_scores [T+l])
         """

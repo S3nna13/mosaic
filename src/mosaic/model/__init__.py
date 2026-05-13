@@ -1,7 +1,6 @@
 """MOSAIC core model — transformer + memory-native architecture."""
 from __future__ import annotations
 
-
 # Import errors are helpful: they guide dependency installation
 
 try:
@@ -12,8 +11,8 @@ except ImportError as e:
 
 # Optional heavy imports (torch)
 try:
-    from .transformer import MosaicTransformer  # type: ignore
     from .model import MosaicForCausalLM  # type: ignore
+    from .transformer import MosaicTransformer  # type: ignore
 except ImportError:
     MosaicTransformer = None  # type: ignore
     MosaicForCausalLM = None  # type: ignore
@@ -21,6 +20,6 @@ except ImportError:
 
 __all__ = [
     "MosaicConfig",
-    "MosaicTransformer",
     "MosaicForCausalLM",
+    "MosaicTransformer",
 ]

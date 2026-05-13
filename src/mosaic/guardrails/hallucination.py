@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from mosaic.adapters.base import ModelAdapter
 
 from .engine import Guardrail, GuardrailResult
-from mosaic.adapters.base import ModelAdapter
 
 
 class HallucinationDetector(Guardrail):
     name = "hallucination"
     is_output = True
 
-    def __init__(self, model: Optional[ModelAdapter] = None, threshold: float = 0.5):
+    def __init__(self, model: ModelAdapter | None = None, threshold: float = 0.5):
         self.model = model
         self.threshold = threshold
 

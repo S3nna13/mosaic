@@ -6,14 +6,14 @@ Usage:
 """
 from __future__ import annotations
 
-from typing import List, Optional
-from mosaic.multimodal.vision import ImageInput, MultiModalMessage
 from mosaic.adapters.base import BaseAdapter
+from mosaic.multimodal.vision import MultiModalMessage
+
 
 class MultiModalAdapter(BaseAdapter):
     """Mixin that overrides chat() to accept MultiModalMessage objects with images."""
-    
-    def _messages_to_chat(self, messages: List):
+
+    def _messages_to_chat(self, messages: list):
         """Convert MultiModalMessage list to provider-native format."""
         # This mirrors the per-adapter logic but centralizes it
         result = []

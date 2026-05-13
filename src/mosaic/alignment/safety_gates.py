@@ -82,9 +82,9 @@ class GateEnforcer:
 
 
 __all__ = [
-    "SafetyGate",
-    "UnsafeMemoryWriteGate",
+    "GateEnforcer",
     "InvalidToolSchemaGate",
     "PrivateDataExtractionGate",
-    "GateEnforcer",
+    "SafetyGate",
+    "UnsafeMemoryWriteGate",
 ]

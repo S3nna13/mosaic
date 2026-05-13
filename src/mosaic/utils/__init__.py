@@ -7,6 +7,6 @@ from .logging_ import StructuredLogger
 __all__ = [
     "CircuitBreaker",
     "CircuitBreakerError",
-    "with_retry",
     "StructuredLogger",
+    "with_retry",
 ]

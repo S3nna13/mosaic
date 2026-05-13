@@ -21,13 +21,10 @@ import time
 import uuid
 from collections import OrderedDict, deque
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from enum import Enum
-from typing import Deque, Dict, List, Optional, Tuple
 
 import torch
 import torch.nn as nn
-from pydantic import BaseModel, Field
 
 
 class Tier(str, Enum):
@@ -40,12 +37,12 @@ class Tier(str, Enum):
 class MemoryEntry:
     id: str
     tier: Tier
-    tokens: List[int]          # token IDs (for model ingestion)
+    tokens: list[int]          # token IDs (for model ingestion)
     text: str                  # human-readable representation
     priority: float            # 0–1  (higher → keep longer)
     created_at: float = field(default_factory=time.time)
-    expires_at: Optional[float] = None
-    metadata: Dict[str, object] = field(default_factory=dict)
+    expires_at: float | None = None
+    metadata: dict[str, object] = field(default_factory=dict)
 
     def is_expired(self) -> bool:
         return self.expires_at is not None and time.time() > self.expires_at
@@ -57,14 +54,14 @@ class TierBuffer:
         self.capacity = capacity
         self.tier = tier
         self._buffer: OrderedDict[str, MemoryEntry] = OrderedDict()
-        self._lru: Deque[str] = deque(maxlen=capacity)
+        self._lru: deque[str] = deque(maxlen=capacity)
 
     def add(self, entry: MemoryEntry) -> None:
         self._buffer[entry.id] = entry
         self._lru.append(entry.id)
         self._enforce_capacity()
 
-    def get(self, entry_id: str) -> Optional[MemoryEntry]:
+    def get(self, entry_id: str) -> MemoryEntry | None:
         return self._buffer.get(entry_id)
 
     def remove(self, entry_id: str) -> None:
@@ -74,7 +71,7 @@ class TierBuffer:
         except ValueError:
             pass
 
-    def all_entries(self) -> List[MemoryEntry]:
+    def all_entries(self) -> list[MemoryEntry]:
         return list(self._buffer.values())
 
     def clear(self) -> None:
@@ -89,7 +86,7 @@ class TierBuffer:
 
     def token_tensor(self) -> torch.Tensor:
         """Return concatenated tokens as a 1-D LongTensor."""
-        all_toks: List[int] = []
+        all_toks: list[int] = []
         for e in self._buffer.values():
             all_toks.extend(e.tokens)
         if not all_toks:
@@ -101,7 +98,7 @@ class ExodusMemoryStore:
     """Singleton managing all three memory tiers with priority consolidation."""
     # FIXME: make per-instance (not singleton) when multi-tenant
 
-    _instance: Optional[ExodusMemoryStore] = None
+    _instance: ExodusMemoryStore | None = None
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
@@ -113,7 +110,7 @@ class ExodusMemoryStore:
         scratch_cap: int = 512,
         episode_cap: int = 4096,
         archive_cap: int = 8192,
-        persist_path: Optional[str] = None,
+        persist_path: str | None = None,
     ):
         if hasattr(self, "_initialized") and self._initialized:
             return
@@ -121,7 +118,7 @@ class ExodusMemoryStore:
         self.episode = TierBuffer(episode_cap, Tier.EPISODE)
         self.archive = TierBuffer(archive_cap, Tier.ARCHIVE)
         self.persist_path = persist_path
-        self._db: Optional[sqlite3.Connection] = None
+        self._db: sqlite3.Connection | None = None
         self._init_db()
         self._initialized = True
 
@@ -194,11 +191,11 @@ class ExodusMemoryStore:
     def add(
         self,
         tier: Tier,
-        tokens: List[int],
+        tokens: list[int],
         text: str,
         priority: float = 0.5,
-        ttl_seconds: Optional[float] = None,
-        metadata: Optional[Dict[str, object]] = None,
+        ttl_seconds: float | None = None,
+        metadata: dict[str, object] | None = None,
     ) -> str:
         entry_id = str(uuid.uuid4())
         expires = (time.time() + ttl_seconds) if ttl_seconds else None
@@ -216,7 +213,7 @@ class ExodusMemoryStore:
         self._persist_entry(entry)
         return entry_id
 
-    def get_by_tier(self, tier: Tier, limit: Optional[int] = None) -> List[MemoryEntry]:
+    def get_by_tier(self, tier: Tier, limit: int | None = None) -> list[MemoryEntry]:
         entries = self._get_buffer(tier).all_entries()
         if limit:
             entries = entries[:limit]
@@ -224,12 +221,12 @@ class ExodusMemoryStore:
 
     def query(
         self,
-        query_tokens: Optional[List[int]] = None,
+        query_tokens: list[int] | None = None,
         tier: Tier = Tier.ARCHIVE,
         top_k: int = 5,
-    ) -> List[Tuple[MemoryEntry, float]]:
+    ) -> list[tuple[MemoryEntry, float]]:
         """Very naive token-overlap similarity."""
-        results: List[Tuple[MemoryEntry, float]] = []
+        results: list[tuple[MemoryEntry, float]] = []
         for entry in self._get_buffer(tier).all_entries():
             if not entry.tokens or not query_tokens:
                 score = entry.priority  # fallback
@@ -243,8 +240,8 @@ class ExodusMemoryStore:
     def consolidate_upwards(self, entry_id: str, target_tier: Tier) -> bool:
         """Move entry from its current tier up to target_tier (e.g., scratch→episode)."""
         # Find the entry across tiers (could optimise with index)
-        src_tier: Optional[Tier] = None
-        src_entry: Optional[MemoryEntry] = None
+        src_tier: Tier | None = None
+        src_entry: MemoryEntry | None = None
         for t in Tier:
             buf = self._get_buffer(t)
             e = buf.get(entry_id)
@@ -288,17 +285,17 @@ class ExodusMemoryStore:
             self._db.commit()
 
     # ── Tensor helpers for model ingestion ────────────────────────────────────
-    def tier_tensor(self, tier: Tier, max_tokens: Optional[int] = None) -> torch.Tensor:
+    def tier_tensor(self, tier: Tier, max_tokens: int | None = None) -> torch.Tensor:
         """Concatenated token IDs for cross-attention injection; length ≤ max_tokens."""
         entries = self.get_by_tier(tier)
-        tokens: List[int] = []
+        tokens: list[int] = []
         for e in entries:
             tokens.extend(e.tokens)
             if max_tokens and len(tokens) >= max_tokens:
                 break
         return torch.tensor(tokens, dtype=torch.long)
 
-    def stats(self) -> Dict[str, int]:
+    def stats(self) -> dict[str, int]:
         return {
             "scratch": len(self.scratch._buffer),
             "episode": len(self.episode._buffer),
@@ -320,5 +317,9 @@ class SinaiRegisters(nn.Module):
 
 
 __all__ = [
-    "Tier", "MemoryEntry", "TierBuffer", "ExodusMemoryStore", "SinaiRegisters",
+    "ExodusMemoryStore",
+    "MemoryEntry",
+    "SinaiRegisters",
+    "Tier",
+    "TierBuffer",
 ]

@@ -7,8 +7,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Optional
 
 import numpy as np
 from PIL import Image
@@ -26,7 +24,7 @@ class ImageInput:
     """Encapsulates an image reference (URL, file path, or base64 data)."""
     source: str  # url or filesystem path
     mime_type: str = "image/jpeg"
-    data: Optional[bytes] = None  # raw bytes if already loaded
+    data: bytes | None = None  # raw bytes if already loaded
 
     def load(self) -> Image.Image:
         if self.data:
@@ -63,7 +61,7 @@ class CLIPVisionEncoder(VisionEncoder):
 
 class MultiModalMessage:
     """Message that can carry both text and images."""
-    def __init__(self, role: str, content: str, images: Optional[List[ImageInput]] = None):
+    def __init__(self, role: str, content: str, images: List[ImageInput] | None = None):
         self.role = role
         self.content = content
         self.images = images or []
@@ -79,4 +77,4 @@ class MultiModalMessage:
         return {"role": self.role, "content": parts}
 
 
-__all__ = ["VisionEncoder", "CLIPVisionEncoder", "ImageInput", "MultiModalMessage"]
+__all__ = ["CLIPVisionEncoder", "ImageInput", "MultiModalMessage", "VisionEncoder"]

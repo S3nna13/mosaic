@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 import pytest
-from mosaic.tools.runner import SafeToolRunner, ToolResult, SecurityError, ValidationError
-from mosaic.tools.registry import registry, Tool
-from mosaic.tools.attack_mapper import MITREMapper, Technique
+
+from mosaic.tools.attack_mapper import MITREMapper
+from mosaic.tools.registry import Tool, registry
+from mosaic.tools.runner import SafeToolRunner, SecurityError, ValidationError
 
 
 def test_runner_rejects_dangerous_command_by_default():

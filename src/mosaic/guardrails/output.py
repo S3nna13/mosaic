@@ -13,7 +13,7 @@ class OutputValidator(Guardrail):
     is_output = True
 
     SAFE_PATTERNS = [
-        (r"I cannot", 1.0), 
+        (r"I cannot", 1.0),
         (r"I'm unable", 1.0)
     ]
 

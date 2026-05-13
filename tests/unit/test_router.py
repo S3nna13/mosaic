@@ -1,8 +1,8 @@
 """RedSea router — 5-mode classification via fast MLP."""
 from __future__ import annotations
 
-import pytest
 import torch
+
 from mosaic.inference.router import RedSeaRouter, RouterConfig
 
 

@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-import json
-import sys
 from datetime import UTC, datetime
 from typing import Any
 
 import structlog
-
 
 logger = structlog.get_logger()
 
@@ -33,8 +30,8 @@ def log_audit(action: str, user: str | None = None, **extra) -> None:
 
 
 __all__ = [
-    "logger",
     "configure_logging",
-    "log_event",
     "log_audit",
+    "log_event",
+    "logger",
 ]

@@ -5,8 +5,9 @@ from __future__ import annotations
 import asyncio
 import functools
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, TypeVar, ParamSpec
+from typing import ParamSpec, TypeVar
 
 T = TypeVar("T")
 P = ParamSpec("P")

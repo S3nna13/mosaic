@@ -97,11 +97,11 @@ class FactualCheck(Metric):
 
 
 __all__ = [
-    "MetricResult",
-    "Metric",
-    "ExactMatch",
     "Contains",
-    "RegexMatch",
-    "LLMJudge",
+    "ExactMatch",
     "FactualCheck",
+    "LLMJudge",
+    "Metric",
+    "MetricResult",
+    "RegexMatch",
 ]

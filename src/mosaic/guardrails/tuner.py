@@ -17,7 +17,6 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Deque, Optional
 
 # Simple proportional controller; could extend to PI or PID
 KP = 0.02    # proportional gain
@@ -30,13 +29,13 @@ WINDOW = 100  # decisions to consider
 class RailStats:
     name: str
     threshold: float
-    decisions: Deque[tuple[bool, bool]] = field(default_factory=lambda: deque(maxlen=WINDOW))
+    decisions: deque[tuple[bool, bool]] = field(default_factory=lambda: deque(maxlen=WINDOW))
     # decision stored as (passed, was_correct).  was_correct comes from downstream signal:
     #   - If INPUT rail blocks and audit says rightly blocked → True
     #   - If INPUT rail passes and later security incident → False
     #   - For now we treat passes as correct, blocks as correct by default (conservative)
 
-    def record(self, passed: bool, correct: Optional[bool] = None) -> None:
+    def record(self, passed: bool, correct: bool | None = None) -> None:
         # If no explicit correctness label, assume passed=correct, blocked=correct (safe default)
         if correct is None:
             correct = passed  # optimistic; conservative would be False for blocks
@@ -70,7 +69,7 @@ class AdaptiveGuardrailTuner:
         if rail_name not in self._stats:
             self._stats[rail_name] = RailStats(name=rail_name, threshold=initial_threshold)
 
-    def record(self, rail_name: str, passed: bool, correct: Optional[bool] = None) -> None:
+    def record(self, rail_name: str, passed: bool, correct: bool | None = None) -> None:
         self.register(rail_name)  # ensure exists
         self._stats[rail_name].record(passed, correct)
 

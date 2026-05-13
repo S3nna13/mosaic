@@ -8,6 +8,7 @@ import yaml
 
 from .schema import AigisConfig
 
+
 def load_config(path: str | Path) -> AigisConfig:
     path = Path(path)
     if not path.exists():

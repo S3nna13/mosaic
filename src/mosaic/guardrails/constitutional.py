@@ -2,16 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from .engine import Guardrail, GuardrailResult
-from mosaic.model.transformer import MosaicTransformer  # full model used for self-critique  # local model for critique
-
 
 PRINCIPLES = [
     (
         "Helpful and Harmless",
-        ["bomb", "explosive", "weapon", "kill", "murder", "rape", 
+        ["bomb", "explosive", "weapon", "kill", "murder", "rape",
          "assault", "abuse", "terrorist", "trafficking","harmful","dangerous"],
     ),
     ("Truthful", ["hallucinated", "fabricated", "made up", "false claim"]),
@@ -23,7 +19,7 @@ class ConstitutionalCritique(Guardrail):
     name = "constitutional"
     is_output = True
 
-    def __init__(self, critic: Optional[MosaicForCausalLM] = None):
+    def __init__(self, critic: MosaicForCausalLM | None = None):
         self.critic = critic
 
     async def check(self, text: str, context: str | None = None) -> GuardrailResult:

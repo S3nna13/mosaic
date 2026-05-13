@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import re
-
 from .engine import Guardrail, GuardrailResult
-
 
 INJECT_FRAGMENTS = [
     "ignore previous",

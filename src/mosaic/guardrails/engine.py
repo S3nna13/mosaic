@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 # Optional MITRE mapper — guardrails work without it
 try:
@@ -28,7 +27,7 @@ class GuardrailResult:
 class Guardrail:
     name: str
 
-    async def check(self, text: str, context: Optional[str] = None) -> GuardrailResult:
+    async def check(self, text: str, context: str | None = None) -> GuardrailResult:
         raise NotImplementedError
 
 
@@ -48,7 +47,7 @@ class GuardrailPipeline:
                     r.mitre_techniques = [t.id for t in techs]
         return results
 
-    async def check_output(self, text: str, context: Optional[str] = None) -> list[GuardrailResult]:
+    async def check_output(self, text: str, context: str | None = None) -> list[GuardrailResult]:
         results = [await r.check(text, context) for r in self._instances if getattr(r, "is_output", False)]
         if _mitre is not None:
             for r in results:
@@ -59,13 +58,13 @@ class GuardrailPipeline:
 
     # Convenience helpers
     @staticmethod
-    def default_input() -> "GuardrailPipeline":
-        from .jailbreak import JailbreakDetector
+    def default_input() -> GuardrailPipeline:
+        from .context import ContextWindowGuard
         from .injection import PromptInjectionDetector
-        from .toxicity import ToxicityGuardrail
+        from .jailbreak import JailbreakDetector
         from .pii import PIIDetector
         from .secrets import SecretsScanner
-        from .context import ContextWindowGuard
+        from .toxicity import ToxicityGuardrail
         return GuardrailPipeline([
             JailbreakDetector,
             PromptInjectionDetector,
@@ -76,9 +75,9 @@ class GuardrailPipeline:
         ])
 
     @staticmethod
-    def default_output() -> "GuardrailPipeline":
-        from .hallucination import HallucinationDetector
+    def default_output() -> GuardrailPipeline:
         from .factual import FactualConsistency
+        from .hallucination import HallucinationDetector
         from .output import OutputValidator, StructuredOutputValidator
         from .rate_limit import DoSProtectionGuard
         return GuardrailPipeline([
@@ -92,6 +91,6 @@ class GuardrailPipeline:
 
 __all__ = [
     "Guardrail",
-    "GuardrailResult",
     "GuardrailPipeline",
+    "GuardrailResult",
 ]

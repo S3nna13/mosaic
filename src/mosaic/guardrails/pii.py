@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from .engine import Guardrail, GuardrailResult
 from mosaic.security.privacy import PrivacyFilter
+
+from .engine import Guardrail, GuardrailResult
 
 
 class PIIDetector(Guardrail):
