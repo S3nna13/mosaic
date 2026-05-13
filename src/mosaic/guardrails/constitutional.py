@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from .engine import Guardrail, GuardrailResult
-
 from typing import TYPE_CHECKING
+
+from .engine import Guardrail, GuardrailResult
 
 if TYPE_CHECKING:
     from mosaic import MosaicForCausalLM
