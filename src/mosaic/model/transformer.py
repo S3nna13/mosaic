@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as F  # noqa: N812
 
 from mosaic.core.schema import AigisConfig
 
@@ -134,7 +134,7 @@ class GQAAttention(nn.Module):
            exodus_*: [B, TierTokens, dim] — secondary sequences for cross-attn
         Returns: [B, T, dim] with memory-augmented attention if tiers provided.
         """
-        B, T, _ = x.shape
+        B, T, _ = x.shape  # noqa: N806
         q = self.wq(x).view(B, T, self.n_heads, self.head_dim)
         k = self.wk(x).view(B, T, self.n_kv_heads, self.head_dim)
         v = self.wv(x).view(B, T, self.n_kv_heads, self.head_dim)
