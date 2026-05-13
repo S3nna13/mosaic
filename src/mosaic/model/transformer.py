@@ -104,8 +104,12 @@ class RotaryEmbedding(nn.Module):
         x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor
     ) -> torch.Tensor:
         # x: [B, T, n_heads, head_dim]
-        # cos/sin: [1, T, 1, head_dim] broadcast compatible
+        # cos/sin: either [T, head_dim] (from RotaryEmbedding.forward) or [1,T,1,head_dim]
         head_dim = x.shape[-1]
+        if cos.dim() == 2:
+            # reshape to [1, T, 1, head_dim] for proper broadcasting
+            cos = cos.unsqueeze(0).unsqueeze(2)
+            sin = sin.unsqueeze(0).unsqueeze(2)
         assert cos.shape[-1] == head_dim
         x1, x2 = x[..., : head_dim // 2], x[..., head_dim // 2 :]
         rotated = torch.cat((-x2, x1), dim=-1)
