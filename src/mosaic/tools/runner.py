@@ -136,9 +136,10 @@ class SafeToolRunner:
         default_timeout: float = 30.0,
         max_stdout: int = 100_000,
         allowed_tools: set[str] | None = None,
+        timeout: float | None = None,
     ):
         self.safe_mode = safe_mode
-        self.default_timeout = default_timeout
+        self.default_timeout = timeout if timeout is not None else default_timeout
         self.max_stdout = max_stdout
         self.allowed_tools = allowed_tools or set()
         self._blocked_tools: set[str] = set()
