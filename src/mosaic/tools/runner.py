@@ -262,7 +262,7 @@ class SafeToolRunner:
                 duration=result.duration_sec,
             )
             return result
-        except asyncio.TimeoutError:
+        except TimeoutError:
             completed = datetime.now(UTC)
             logger.warning(
                 "tool_timeout", tool=tool_name, timeout=timeout or self.default_timeout
