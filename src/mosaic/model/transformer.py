@@ -192,7 +192,9 @@ class GQAAttention(nn.Module):
                 mem_cat = torch.cat(mem_list, dim=1)  # [B, m_tot, dim]
                 km = self.wk(mem_cat).view(B, -1, self.n_kv_heads, self.head_dim)
                 vm = self.wv(mem_cat).view(B, -1, self.n_kv_heads, self.head_dim)
-                cos_m, sin_m = RotaryEmbedding(self.head_dim, self.cfg.max_seq_len, self.cfg.rope_theta)(km.size(1), x.device)
+                cos_m, sin_m = RotaryEmbedding(
+                    self.head_dim, self.cfg.max_seq_len, self.cfg.rope_theta
+                )(km.size(1), x.device)
                 km = RotaryEmbedding.apply_rope(km, cos_m, sin_m)
                 km = torch.repeat_interleave(km, dim=2, repeats=self.n_local)
                 vm = torch.repeat_interleave(vm, dim=2, repeats=self.n_local)
