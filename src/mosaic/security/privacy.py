@@ -201,12 +201,14 @@ class PrivacyFilter:
         # Build hit objects
         hits: list[PrivacyHit] = []
         for start, end, t, _ in cleaned:
-            sample = text[start:start+10]
+            sample = text[start : start + 10]
             if end - start > 10:
                 sample += "…"
             hits.append(PrivacyHit(entity_type=t, span=(start, end), sample=sample))
 
-        return PrivacyScanResult(hits=hits, redacted_text=redacted, action=effective_action)
+        return PrivacyScanResult(
+            hits=hits, redacted_text=redacted, action=effective_action
+        )
 
     def contains_secret_blockers(self, text: str) -> bool:
         """Quick pre-check: does text contain any BLOCK-action secret?"""
