@@ -364,7 +364,7 @@ class ExodusMemoryStore:
                 continue
             vec = entry.embedding
             norm = (sum(x * x for x in vec) ** 0.5) + 1e-8
-            dot = sum(a * b for a, b in zip(query_arr, vec))
+            dot = sum(a * b for a, b in zip(query_arr, vec, strict=True))
             score = dot / (q_norm * norm)
             scored.append((entry, score))
         scored.sort(key=lambda x: x[1], reverse=True)
