@@ -10,10 +10,9 @@ from .hallucination import HallucinationDetector
 from .injection import PromptInjectionDetector
 from .jailbreak import JailbreakDetector
 from .output import OutputValidator, StructuredOutputValidator
-from .pii import PIIDetector
+from .pii import PIIDetector, SecretsScanner
 from .rag import RAGPoisoningDetector
 from .rate_limit import DoSProtectionGuard
-from .pii import SecretsScanner
 from .toxicity import ToxicityFilter, ToxicityGuardrail
 
 # Convenience: expose the full set
