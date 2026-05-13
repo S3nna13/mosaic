@@ -56,7 +56,7 @@ class RedSeaRouter(nn.Module):
         self.dim = cfg.d_model
         self.n_modes = n_modes
         self.classifier = nn.Sequential(
-            nn.Linear(dim, hidden),
+            nn.Linear(cfg.d_model, hidden),
             nn.SiLU(),
             nn.Linear(hidden, n_modes),
         )
