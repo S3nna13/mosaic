@@ -14,22 +14,22 @@ class ComputePolicy:
         "equation", "calculate", "integral", "derivative", "solve", "math",
         "algebra", "geometry", "calculus", "probability", "theorem", "proof",
     )
-    CODE_KEYWORDS = [
+    CODE_KEYWORDS = (
         "code", "function", "implement", "algorithm", "programming", "class",
         "def ", "import ", "script", "debug", "fix", "refactor", "api",
-    ]
-    TOOL_KEYWORDS = [
+    )
+    TOOL_KEYWORDS = (
         "search", "browse", "fetch", "get", "retrieve", "query", "api",
         "http", "send", "tool", "call", "execute", "run", "list",
-    ]
-    AMBIGUOUS_KEYWORDS = [
+    )
+    AMBIGUOUS_KEYWORDS = (
         "maybe", "uncertain", "unclear", "depends", "ambiguous",
         "could be", "might be", "either", "probably", "possibly",
-    ]
-    HIGH_RISK_KEYWORDS = [
+    )
+    HIGH_RISK_KEYWORDS = (
         "critical", "important", "urgent", "must", "should",
         "careful", "dangerous", "risk", "harm", "security", "admin",
-    ]
+    )
 
     def classify(self, text: str) -> dict[str, Any]:
         """Return feature dict for the given prompt."""
@@ -70,4 +70,4 @@ class ComputePolicy:
         return InferenceMode.FAST
 
 
-__all__ = ["ComputePolicy"]
+__all__ = ("ComputePolicy"]
