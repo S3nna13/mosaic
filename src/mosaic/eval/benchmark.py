@@ -130,7 +130,7 @@ class BenchmarkHarness:
 
         # Aggregate macro-average
         macro_avg = statistics.mean(r.score for r in self.results)
-        summary = {
+        return {
             "num_scenarios": len(self.results),
             "macro_avg": round(macro_avg, 4),
             "scenario_scores": [r.to_dict() for r in self.results],

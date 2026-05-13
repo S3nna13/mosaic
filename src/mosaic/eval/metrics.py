@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 
+import re
 @dataclass
 class MetricResult:
     """Outcome of a metric measurement."""
