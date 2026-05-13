@@ -176,7 +176,7 @@ class BenchmarkHarness:
         return score
 
 
-__all__ = ["BenchmarkHarness", "Scenario", "ScenarioResult"]
+__all__ = ["BenchmarkHarness", "MosaicBenchmark", "Scenario", "ScenarioResult"]
 
 # Public alias used throughout mosaic (for backwards compatibility)
 MosaicBenchmark = BenchmarkHarness
