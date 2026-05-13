@@ -38,7 +38,7 @@ class MosaicConfig:
     n_layers: int = 24
     n_heads: int = 16
     n_kv_heads: int = 4
-    dim: int = 2048
+    d_model: int = 2048
     mlp_ratio: float = 4.0
     max_seq_len: int = 8192
     rope_theta: float = 10000.0
@@ -54,9 +54,14 @@ class MosaicConfig:
     inner_dim: int = field(init=False)
 
     def __post_init__(self):
-        assert self.dim % self.n_heads == 0
-        self.head_dim = self.dim // self.n_heads
-        self.inner_dim = int(self.mlp_ratio * self.dim)
+        assert self.d_model % self.n_heads == 0
+        self.head_dim = self.d_model // self.n_heads
+        self.inner_dim = int(self.mlp_ratio * self.d_model)
+
+    @property
+    def dim(self) -> int:
+        """Backwards-compatible alias for d_model."""
+        return self.d_model
 
 
 class RMSNorm(nn.Module):
